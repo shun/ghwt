@@ -165,7 +165,7 @@ Nick Nisi 式では、以下の構造を採用する：
 
 ---
 
-## 5. 機能要件 (MVP)
+## 5. 機能要件 (MVP: Minimum Viable Product)
 
 | ID | 機能 | 詳細 |
 |----|------|------|
@@ -207,7 +207,7 @@ ghwt ls
 ghwt prune --expire 14d
 
 # 設定管理
-ghwt config set core.auto-prune true
+ghwt config set core.root ~/workspace
 ghwt config get core.root
 ```
 
