@@ -1,0 +1,199 @@
+# AI-Driven Development Rules - Document Date Consistency
+# Version: 1.0
+# Description: Rules for maintaining consistent dates across all documentation when creating or updating documents.
+
+# Introduction
+# 本ルールは、AIがドキュメント作成・更新時に日付の一貫性を保つためのプロセスを定義します。
+# 全てのドキュメントで統一された現在日付を使用し、過去の日付や未来の日付の使用を防ぎます。
+
+# 1. Document Date Management
+# ---------------------------
+document_date_management:
+  date_verification:
+    rule: "ドキュメント作成・更新開始時に必ず現在日付を確認する"
+    command: "date '+%Y-%m-%d'"
+    purpose: "正確な現在日付を取得し、全ドキュメントで統一使用する"
+    
+  date_consistency:
+    rule: "同一セッション内では同じ日付を全ドキュメントで使用する"
+    scope: "作業セッション中に作成・更新する全てのドキュメント"
+    format: "YYYY-MM-DD形式（例：2025-05-31）"
+    
+  date_application_locations:
+    specifications:
+      location: "**Date**: YYYY-MM-DD"
+      example: "**Date**: 2025-05-31"
+      files: "docs/003-specifications/*.md"
+      
+    requirements:
+      version_line:
+        location: "Version X.X — YYYY-MM-DD"
+        example: "Version 1.0 — 2025-05-31"
+        files: "docs/002-requirements/*.md"
+      change_history:
+        location: "| YYYY-MM-DD | X.X | 変更内容 |"
+        example: "| 2025-05-31 | 1.0 | 初版作成 |"
+        rule: "最新エントリの日付を現在日付に設定"
+        
+    adr:
+      location: "**決定日**: YYYY-MM-DD"
+      example: "**決定日**: 2025-05-31"
+      files: "docs/001-adr/*.md"
+
+# 2. Document Creation Process
+# ----------------------------
+document_creation_process:
+  mandatory_steps:
+    - step_id: "D1"
+      title: "現在日付の確認"
+      action: "date '+%Y-%m-%d' コマンドで現在日付を取得"
+      output: "YYYY-MM-DD形式の日付文字列"
+      
+    - step_id: "D2"
+      title: "日付の一貫適用"
+      action: "取得した日付を全ドキュメントの該当箇所に適用"
+      validation: "同一セッション内で異なる日付が使用されていないことを確認"
+      
+    - step_id: "D3"
+      title: "日付形式の検証"
+      action: "全ての日付がYYYY-MM-DD形式であることを確認"
+      error_prevention: "MM/DD/YYYY、DD-MM-YYYY等の異なる形式を使用しない"
+
+# 3. Document Update Process
+# --------------------------
+document_update_process:
+  existing_document_handling:
+    rule: "既存ドキュメントを更新する際は、日付を現在日付に更新する"
+    scope: "内容に変更がある場合のみ日付を更新"
+    preservation: "変更履歴の過去エントリは保持し、新しいエントリのみ現在日付を使用"
+    
+  multiple_document_updates:
+    rule: "複数ドキュメントを同時更新する場合、全て同じ日付を使用"
+    consistency_check: "更新完了前に全ドキュメントの日付一貫性を確認"
+
+# 4. Error Prevention
+# -------------------
+error_prevention:
+  common_mistakes:
+    past_dates:
+      description: "過去の日付を使用する"
+      example: "2025-01-27（実際は2025-05-31の場合）"
+      prevention: "必ずdate コマンドで現在日付を確認"
+      
+    future_dates:
+      description: "未来の日付を使用する"
+      example: "2025-12-31（実際は2025-05-31の場合）"
+      prevention: "手動入力ではなくコマンド結果を使用"
+      
+    inconsistent_dates:
+      description: "同一ドキュメント内で異なる日付を使用"
+      example: "**Date**: 2025-05-31 と Version 1.0 — 2025-01-27"
+      prevention: "セッション開始時に取得した日付を一貫使用"
+      
+    wrong_format:
+      description: "異なる日付形式を使用"
+      example: "05/31/2025、31-05-2025"
+      prevention: "YYYY-MM-DD形式のみ使用"
+
+# 5. Validation Rules
+# -------------------
+validation_rules:
+  pre_commit_check:
+    rule: "ドキュメント変更をコミット前に日付の一貫性を確認"
+    validation_points:
+      - "全ドキュメントで同じ日付が使用されている"
+      - "日付形式がYYYY-MM-DD統一されている"
+      - "現在日付が正しく使用されている"
+      
+  session_consistency:
+    rule: "作業セッション中の日付一貫性を維持"
+    tracking: "セッション開始時に取得した日付を記録し、全操作で使用"
+
+# 6. Templates
+# ------------
+document_templates:
+  specification_template: |
+    # [タイトル] 完全仕様書
+    
+    **Version**: 1.0  
+    **Date**: {current_date}  
+    **Status**: Draft  
+    
+    ## 概要
+    
+    ## 目的
+    
+    ---
+    
+    ## 完了条件チェックリスト
+    
+    - [ ] 
+    
+    ---
+    
+    ## 関連ドキュメント
+    
+    - [要件定義書](../002-requirements/requirements-ja.md)
+    
+    ---
+    
+    *本仕様書は GHWT プロジェクトの基盤として機能します。*
+    
+  adr_template: |
+    # ADR-XXX: [タイトル]
+    
+    **決定日**: {current_date}  
+    **ステータス**: 提案中  
+    **決定者**: 開発チーム  
+    
+    ## 背景
+    
+    ## 決定内容
+    
+    ## 理由
+    
+    ## 影響
+    
+    ## 代替案
+    
+    ## 関連資料
+    
+  requirement_template: |
+    # [タイトル] 要件定義書
+    
+    Version 1.0 — {current_date}
+    
+    ## 概要
+    
+    ## 変更履歴
+    
+    | 日付 | バージョン | 変更内容 |
+    |------|------------|----------|
+    | {current_date} | 1.0 | 初版作成 |
+    
+    ---
+    
+    ## 目的
+    
+    ---
+    
+    ## 要件
+    
+    ---
+    
+    ## 完了条件
+
+# 7. Implementation Guidelines
+# ----------------------------
+implementation_guidelines:
+  workflow_integration:
+    rule: "日付確認をドキュメント作業の標準ワークフローに組み込む"
+    automation: "可能な限り手動入力を避け、コマンド結果を使用"
+    
+  human_notification:
+    rule: "日付の不整合を発見した場合は人間に報告"
+    format: "「日付の不整合を発見しました。現在日付（{current_date}）に統一します。」"
+    
+  error_recovery:
+    rule: "過去の間違った日付を発見した場合は自動修正"
+    scope: "現在編集中のドキュメントのみ（過去のコミットは変更しない）" 
