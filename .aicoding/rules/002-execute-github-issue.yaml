@@ -339,6 +339,9 @@ issue_task_execution:
     human_review_requirement:
       rule: "コミット前に必ず人間のレビューを受ける"
       scope: "変更内容、実装品質、完了条件の達成度"
+      timing: "全タスク完了時"
+      format: "変更内容の要約、完了したタスク、変更されたファイルを明記"
+      wait_behavior: "人間からの「レビューOK」を待機"
       
     documentation_update:
       rule: "関連するドキュメントが存在する場合は、変更に応じて更新する"
