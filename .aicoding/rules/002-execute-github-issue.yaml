@@ -1,5 +1,5 @@
 # AI-Driven Development Rules - Issue Execution
-# Version: 2.1
+# Version: 2.2
 # Description: Rules for executing tasks from a specified GitHub Issue number with automated branch management, human review process, and PR creation workflow.
 
 # Introduction
@@ -42,6 +42,11 @@ issue_task_execution:
       
     commit_and_pr_creation:
       rule: "人間から「レビューOK」を受けた後にコミット・PR作成を実行する"
+      commit_strategy:
+        - "git add で変更ファイルを確実にステージング"
+        - "コミットメッセージを/tmpの一時ファイルに作成"
+        - "git commit -F オプションで一時ファイルを使用"
+        - "一時ファイルは/tmpディレクトリに作成"
       commit_message_format: |
         {issue_title}
         
@@ -56,7 +61,12 @@ issue_task_execution:
         - "対応内容は具体的な実装内容を箇条書きで記載"
         - "備考がない場合は「備考」セクションを表示しない"
         - "各項目は「- 」で始める"
-      
+        - "git commit -F オプションで一時ファイルを使用"
+      temporary_files:
+        location: "/tmp"
+        naming_pattern: "/tmp/ghwt-{operation}-{timestamp}.txt"
+        cleanup: "操作完了後に自動削除"
+       
     pull_request_creation:
       rule: "コミット後に自動的にPull Requestを作成する"
       title_format: "#{issue_number}: {issue_title}"
@@ -74,6 +84,10 @@ issue_task_execution:
         
         ### 🔗 関連Issue
         Closes #{issue_number}
+      pr_creation_strategy:
+        - "ブランチを必ずリモートにプッシュしてからPR作成"
+        - "PR本文は一時ファイル（/tmp）を使用"
+        - "改行文字を含むコマンドは--body-fileオプションで回避"
       
     issue_completion:
       checkbox_update:
@@ -95,6 +109,9 @@ issue_task_execution:
           
           ### 🔗 Pull Request
           #{pr_number}
+        comment_strategy:
+          - "コメント本文は一時ファイル（/tmp）を使用"
+          - "--body-fileオプションで改行文字問題を回避"
           
       auto_close:
         rule: "PR作成後、人間の確認を経てIssueを自動クローズする"
@@ -192,7 +209,7 @@ issue_task_execution:
         action: "全タスク完了後、変更内容を整理して人間にレビューを依頼する"
         key_inputs: ["完了したタスクリスト", "変更内容", "変更されたファイル"]
         key_outputs: ["レビュー依頼"]
-        wait_condition: "人間からの「レビューOK」を待機"
+        wait_condition: "人間から「レビューOK」の回答を待つ"
         
       - step_id: "E6"
         title: "コミット実行"
@@ -201,10 +218,16 @@ issue_task_execution:
         key_inputs: ["レビューOK確認", "変更内容"]
         key_outputs: ["コミット"]
         trigger: "人間から「レビューOK」を受信した場合のみ"
+        commit_execution_steps:
+          - "git add で変更ファイルをステージング"
+          - "コミットメッセージを/tmpの一時ファイルに作成"
+          - "git commit -F [temp_file_path] でコミット実行"
+          - "一時ファイルを削除"
         commit_message_generation:
           title: "Issueのタイトルをそのまま使用"
           implementation_items: "具体的な実装内容を箇条書きで記載"
           notes: "備考がある場合のみ記載（ない場合は省略）"
+          format_example: 'git commit -F /tmp/ghwt-commit-message-{timestamp}.txt'
         
       - step_id: "E7"
         title: "Pull Request作成と完了報告"
@@ -212,10 +235,20 @@ issue_task_execution:
         action: "コミット後、自動的にPull Requestを作成し、完了報告を行う"
         key_inputs: ["コミット完了", "変更内容"]
         key_outputs: ["Pull Request", "完了報告コメント"]
+        pr_creation_steps:
+          - "ブランチをリモートにプッシュ（git push -u origin ブランチ名）"
+          - "PR本文を/tmpの一時ファイルに作成"
+          - "gh pr create --body-fileオプションでPR作成"
+          - "一時ファイルを削除"
+        comment_creation_steps:
+          - "完了報告コメントを/tmpの一時ファイルに作成"
+          - "gh issue comment --body-fileオプションでコメント追加"
+          - "一時ファイルを削除"
         automation:
           - "PR作成の自動化"
           - "Issue完了コメントの自動追加"
           - "関連Issueのリンク設定"
+          - "一時ファイルの自動クリーンアップ"
         
       - step_id: "E8"
         title: "Issue自動クローズ（オプション）"
@@ -250,13 +283,33 @@ issue_task_execution:
       condition: "タスク実行中にエラーが発生した場合"
       action: "エラー内容を分析し、解決策を提案する。必要に応じて人間の支援を求める"
       
+    commit_failure:
+      condition: "コミット実行に失敗した場合"
+      actions:
+        - "ステージングエリアの確認: git status"
+        - "変更ファイルの再ステージング: git add ."
+        - "コミットメッセージを一時ファイルに再作成"
+        - "git commit -F オプションで再実行"
+        - "一時ファイルの権限・内容確認"
+      
     review_timeout:
       condition: "人間のレビューが長時間得られない場合"
       action: "レビュー依頼を再送し、緊急度を伝える"
       
     pr_creation_failure:
       condition: "Pull Request作成に失敗した場合"
-      action: "エラー原因を分析し、手動でのPR作成手順を提示する"
+      actions:
+        - "ブランチのリモートプッシュ確認"
+        - "一時ファイルを使用したPR本文作成"
+        - "--body-fileオプションの使用"
+        - "エラー原因の分析と手動手順の提示"
+        
+    temporary_file_failure:
+      condition: "一時ファイル作成・操作に失敗した場合"
+      actions:
+        - "/tmpディレクトリの書き込み権限確認"
+        - "代替の一時ディレクトリ使用"
+        - "ファイル名の重複回避（タイムスタンプ使用）"
 
   communication_guidelines:
     progress_updates:
@@ -306,14 +359,19 @@ development_tools_integration:
       fallback: "gh issue view [issue_number] --json title,body,labels,state"
       api_fallback: "curl -H 'Accept: application/vnd.github.v3+json' https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}"
     issue_update: "gh issue edit [issue_number] --body [updated_body]"
-    issue_comment: "gh issue comment [issue_number] --body [comment_text]"
+    issue_comment: "gh issue comment [issue_number] --body-file [temp_file_path]"
     issue_close: "gh issue close [issue_number] --comment [completion_message]"
-    pr_creation: "gh pr create --title [title] --body [body] --base main --head [branch]"
+    pr_creation: "gh pr create --title [title] --body-file [temp_file_path] --base main --head [branch]"
     
   git_workflow:
     branch_creation: "git checkout -b feature/issue-{issue_number}-{sanitized_title}"
     branch_push: "git push -u origin feature/issue-{issue_number}-{sanitized_title}"
     commit_strategy: "人間のレビューOK後に一括コミット"
+    commit_execution:
+      staging: "git add [changed_files]"
+      commit_command: 'git commit -F [temp_file_path]'
+      notes_handling: "備考がある場合のみ一時ファイルに含める"
+      temp_file_creation: "コミットメッセージを/tmpの一時ファイルに作成"
     commit_message_format: |
       {issue_title}
       
@@ -327,6 +385,16 @@ development_tools_integration:
       - "備考がない場合は「備考」セクションを省略"
       - "各項目は「- 」で始める"
       - "具体的な実装内容を記載"
+      - "git commit -F オプションで一時ファイル使用"
+    
+  temporary_file_management:
+    base_directory: "/tmp"
+    naming_convention: "ghwt-{operation}-{timestamp}.txt"
+    operations:
+      pr_body: "/tmp/ghwt-pr-body-{timestamp}.txt"
+      issue_comment: "/tmp/ghwt-issue-comment-{timestamp}.txt"
+      commit_message: "/tmp/ghwt-commit-message-{timestamp}.txt"
+    cleanup_policy: "操作完了後に即座に削除"
     
   cursor_windsurf_integration:
     parallel_development: "複数のファイルやコンポーネントを同時に編集"
@@ -356,12 +424,14 @@ automation_settings:
   auto_commit_after_review:
     enabled: true
     trigger: "human_review_approval"
+    commit_method: "temp_file_with_F_option"
     
   auto_pr_creation:
     enabled: true
     draft_mode: false
     auto_assign_reviewers: false
     trigger: "after_commit"
+    method: "body_file_option"
     
   auto_issue_close:
     enabled: false  # デフォルトは無効、人間の確認を推奨
@@ -370,6 +440,11 @@ automation_settings:
   progress_reporting:
     auto_comment: true
     frequency: "per_task_completion"
+    
+  temporary_file_management:
+    auto_create: true
+    auto_cleanup: true
+    location: "/tmp"
 
 # 4. Collaboration Patterns
 # -------------------------
@@ -385,6 +460,7 @@ collaboration_patterns:
       - "レビューOK後のコミット・PR作成"
       - "進捗状況の追跡と報告"
       - "技術的問題の初期分析"
+      - "一時ファイルの管理とクリーンアップ"
       
     human_responsibilities:
       - "作業完了後の品質レビュー"
@@ -400,6 +476,8 @@ collaboration_patterns:
       - "既存コードスタイルに従った実装"
       - "明確に定義されたタスクの実行方法"
       - "ブランチ作成とチェックボックス更新"
+      - "一時ファイルの作成・削除"
+      - "コミット・PR作成の技術的手法"
       
     collaborative_decisions:
       - "作業完了の品質確認（必須レビュー）"
@@ -423,6 +501,14 @@ success_metrics:
   quality_compliance:
     measure: "完了の定義への準拠度"
     target: "100%（すべての完了基準を満たす）"
+    
+  commit_success_rate:
+    measure: "コミット実行の成功率"
+    target: "100%（改行文字問題やステージング問題の解決）"
+    
+  pr_creation_success_rate:
+    measure: "Pull Request作成の成功率"
+    target: "100%（一時ファイル使用による確実な作成）"
     
   review_process_effectiveness:
     measure: "人間レビューによる品質向上"
