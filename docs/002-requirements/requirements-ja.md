@@ -165,7 +165,7 @@ Nick Nisi 式では、以下の構造を採用する：
 
 ---
 
-## 5. 機能要件 (MVP:Minimum Viable Product)
+## 5. 機能要件 (MVP: Minimum Viable Product)
 
 | ID | 機能 | 詳細 |
 |----|------|------|
