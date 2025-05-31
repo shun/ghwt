@@ -1,10 +1,10 @@
 # AI-Driven Development Rules - Issue Execution
-# Version: 2.0
-# Description: Rules for executing tasks from a specified GitHub Issue number with automated branch management, PR creation, and issue completion workflow.
+# Version: 2.1
+# Description: Rules for executing tasks from a specified GitHub Issue number with automated branch management, human review process, and PR creation workflow.
 
 # Introduction
 # 本ルールは、指定されたGitHub Issue番号に基づいて、そのIssueに定義されたタスクを効率的に実行するプロセスを支援することを目的とします。
-# AIは指定されたIssueの内容を理解し、自動的にブランチを作成し、タスクリストに従って作業を実行し、PRを作成してIssueの完了を目指します。
+# AIは指定されたIssueの内容を理解し、自動的にブランチを作成し、タスクリストに従って作業を実行し、人間のレビューを経てからコミット・PRを作成してIssueの完了を目指します。
 
 # 1. Issue Task Execution Management
 # ----------------------------------
@@ -21,8 +21,44 @@ issue_task_execution:
       example: "feature/issue-123-cli-interface-specification"
       base_branch: "main"
       
+    human_review_process:
+      rule: "全タスク完了後、コミット前に必ず人間のレビューを求める"
+      review_request_format: |
+        ## 🔍 レビュー依頼
+        
+        Issue #{issue_number} の作業が完了しました。
+        以下の内容をレビューしていただき、問題がなければ「レビューOK」とお答えください。
+        
+        ### 📋 完了したタスク
+        {completed_tasks_list}
+        
+        ### 📝 変更内容
+        {changes_summary}
+        
+        ### 📁 変更されたファイル
+        {modified_files_list}
+        
+        レビューをお願いします。
+      
+    commit_and_pr_creation:
+      rule: "人間から「レビューOK」を受けた後にコミット・PR作成を実行する"
+      commit_message_format: |
+        {issue_title}
+        
+        - {implementation_item_1}
+        - {implementation_item_2}
+        
+        備考
+        - {note_1}
+        - {note_2}
+      commit_message_rules:
+        - "タイトルはIssueのタイトルをそのまま使用"
+        - "対応内容は具体的な実装内容を箇条書きで記載"
+        - "備考がない場合は「備考」セクションを表示しない"
+        - "各項目は「- 」で始める"
+      
     pull_request_creation:
-      rule: "タスク完了後に自動的にPull Requestを作成する"
+      rule: "コミット後に自動的にPull Requestを作成する"
       title_format: "#{issue_number}: {issue_title}"
       body_template: |
         ## 📋 Issue #{issue_number} の実装
@@ -45,7 +81,7 @@ issue_task_execution:
         method: "GitHub APIまたはGH CLIを使用してIssue本文を更新"
         
       completion_comment:
-        rule: "全タスク完了時に完了報告コメントを自動追加する"
+        rule: "PR作成後に完了報告コメントを自動追加する"
         template: |
           ## ✅ Issue #{issue_number} 完了報告
           
@@ -101,6 +137,21 @@ issue_task_execution:
   execution_process:
     steps:
       - step_id: "E0"
+        title: "Issue取得の確実な実行"
+        actors: ["AI"]
+        action: "複数の方法でIssue内容を確実に取得する"
+        commands:
+          - "gh issue view {issue_number} | cat"
+          - "gh issue view {issue_number} --json title,body,labels,state"
+          - "curl -H 'Accept: application/vnd.github.v3+json' https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}"
+        fallback_actions:
+          - "PAGERの問題がある場合は | cat を追加"
+          - "GitHub CLIが失敗した場合はAPIを直接使用"
+          - "認証エラーの場合は認証状態を確認"
+        key_inputs: ["Issue番号"]
+        key_outputs: ["Issue詳細情報"]
+        
+      - step_id: "E1"
         title: "ブランチ作成と作業環境準備"
         actors: ["AI"]
         action: "Issue番号とタイトルに基づいてブランチを作成し、作業環境を準備する"
@@ -109,13 +160,6 @@ issue_task_execution:
           - "git push -u origin feature/issue-{issue_number}-{sanitized_title}"
         key_inputs: ["Issue番号", "Issueタイトル"]
         key_outputs: ["作業ブランチ"]
-        
-      - step_id: "E1"
-        title: "Issue番号の確認と内容取得"
-        actors: ["AI"]
-        action: "指定されたIssue番号からGitHub APIまたはコマンドラインツールを使用してIssue内容を取得する"
-        key_inputs: ["Issue番号"]
-        key_outputs: ["Issue詳細情報"]
         
       - step_id: "E2"
         title: "タスク分析と実行計画策定"
@@ -136,24 +180,44 @@ issue_task_execution:
         actors: ["AI"]
         action: "実行計画に従い、タスクを実行する。各タスク完了時にチェックボックスを自動更新し、進捗を可視化する"
         key_inputs: ["実行計画"]
-        key_outputs: ["実行結果", "更新されたタスクリスト", "コミット履歴"]
+        key_outputs: ["実行結果", "更新されたタスクリスト", "変更されたファイル"]
         automation:
           - "タスク完了時のチェックボックス自動更新"
           - "進捗コメントの自動追加"
-          - "コミットメッセージの自動生成"
+          - "変更内容の記録"
         
       - step_id: "E5"
+        title: "人間レビューの依頼"
+        actors: ["AI"]
+        action: "全タスク完了後、変更内容を整理して人間にレビューを依頼する"
+        key_inputs: ["完了したタスクリスト", "変更内容", "変更されたファイル"]
+        key_outputs: ["レビュー依頼"]
+        wait_condition: "人間からの「レビューOK」を待機"
+        
+      - step_id: "E6"
+        title: "コミット実行"
+        actors: ["AI"]
+        action: "人間のレビューOK後、指定されたフォーマットでコミットを実行する"
+        key_inputs: ["レビューOK確認", "変更内容"]
+        key_outputs: ["コミット"]
+        trigger: "人間から「レビューOK」を受信した場合のみ"
+        commit_message_generation:
+          title: "Issueのタイトルをそのまま使用"
+          implementation_items: "具体的な実装内容を箇条書きで記載"
+          notes: "備考がある場合のみ記載（ない場合は省略）"
+        
+      - step_id: "E7"
         title: "Pull Request作成と完了報告"
         actors: ["AI"]
-        action: "全タスク完了後、自動的にPull Requestを作成し、完了報告を行う"
-        key_inputs: ["完了したタスクリスト", "変更内容"]
+        action: "コミット後、自動的にPull Requestを作成し、完了報告を行う"
+        key_inputs: ["コミット完了", "変更内容"]
         key_outputs: ["Pull Request", "完了報告コメント"]
         automation:
           - "PR作成の自動化"
           - "Issue完了コメントの自動追加"
           - "関連Issueのリンク設定"
         
-      - step_id: "E6"
+      - step_id: "E8"
         title: "Issue自動クローズ（オプション）"
         actors: ["AI", "人間"]
         action: "PRが作成され、全ての完了条件を満たしている場合、Issueを自動クローズする"
@@ -162,6 +226,14 @@ issue_task_execution:
         condition: "auto_close設定が有効な場合のみ"
 
   error_handling:
+    issue_retrieval_failure:
+      condition: "Issue取得に失敗した場合"
+      actions:
+        - "PAGERの問題: コマンドに | cat を追加"
+        - "認証エラー: gh auth status で認証状態確認"
+        - "ネットワークエラー: 再試行またはAPI直接使用"
+        - "Issue不存在: Issue番号の再確認を求める"
+      
     branch_creation_failure:
       condition: "ブランチ作成に失敗した場合"
       action: "既存ブランチの確認を行い、適切な名前で再作成を試行する"
@@ -178,6 +250,10 @@ issue_task_execution:
       condition: "タスク実行中にエラーが発生した場合"
       action: "エラー内容を分析し、解決策を提案する。必要に応じて人間の支援を求める"
       
+    review_timeout:
+      condition: "人間のレビューが長時間得られない場合"
+      action: "レビュー依頼を再送し、緊急度を伝える"
+      
     pr_creation_failure:
       condition: "Pull Request作成に失敗した場合"
       action: "エラー原因を分析し、手動でのPR作成手順を提示する"
@@ -188,12 +264,17 @@ issue_task_execution:
       format: "タスク名、完了状況、次のステップを明記"
       automation: "チェックボックス更新と同時に進捗コメントを自動追加"
       
+    review_request:
+      timing: "全タスク完了時"
+      format: "変更内容の要約、完了したタスク、変更されたファイルを明記"
+      wait_behavior: "人間からの「レビューOK」を待機"
+      
     problem_reporting:
       timing: "問題発生時は即座に報告"
       content: "問題の詳細、影響範囲、提案する解決策"
       
     completion_notification:
-      timing: "すべてのタスク完了時"
+      timing: "PR作成後"
       content: "完了したタスクの要約、達成された成果、PR情報"
       automation: "完了報告コメントの自動生成と投稿"
 
@@ -201,6 +282,10 @@ issue_task_execution:
     task_verification:
       rule: "各タスク完了時に、完了の定義に照らして品質を確認する"
       method: "自動テスト、手動確認、コードレビューなど適切な方法を選択"
+      
+    human_review_requirement:
+      rule: "コミット前に必ず人間のレビューを受ける"
+      scope: "変更内容、実装品質、完了条件の達成度"
       
     documentation_update:
       rule: "関連するドキュメントが存在する場合は、変更に応じて更新する"
@@ -216,7 +301,10 @@ development_tools_integration:
   primary_tools: ["Cursor", "Windsurf", "GitHub CLI", "Git"]
   
   github_cli_usage:
-    issue_retrieval: "gh issue view [issue_number] --json title,body,labels,state"
+    issue_retrieval: 
+      primary: "gh issue view [issue_number] | cat"
+      fallback: "gh issue view [issue_number] --json title,body,labels,state"
+      api_fallback: "curl -H 'Accept: application/vnd.github.v3+json' https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}"
     issue_update: "gh issue edit [issue_number] --body [updated_body]"
     issue_comment: "gh issue comment [issue_number] --body [comment_text]"
     issue_close: "gh issue close [issue_number] --comment [completion_message]"
@@ -225,8 +313,20 @@ development_tools_integration:
   git_workflow:
     branch_creation: "git checkout -b feature/issue-{issue_number}-{sanitized_title}"
     branch_push: "git push -u origin feature/issue-{issue_number}-{sanitized_title}"
-    commit_strategy: "各タスク完了時に意味のあるコミットを作成"
-    commit_message_format: "feat(#{issue_number}): {task_description}"
+    commit_strategy: "人間のレビューOK後に一括コミット"
+    commit_message_format: |
+      {issue_title}
+      
+      - {implementation_item_1}
+      - {implementation_item_2}
+      
+      備考
+      - {note_1}
+      - {note_2}
+    commit_message_rules:
+      - "備考がない場合は「備考」セクションを省略"
+      - "各項目は「- 」で始める"
+      - "具体的な実装内容を記載"
     
   cursor_windsurf_integration:
     parallel_development: "複数のファイルやコンポーネントを同時に編集"
@@ -234,7 +334,7 @@ development_tools_integration:
     
   version_control:
     branch_strategy: "Issue番号を含むブランチ名を使用（例：feature/issue-123-cli-interface-spec）"
-    commit_message: "Issue番号を含むコミットメッセージ（例：feat(#123): implement CLI interface specification）"
+    commit_message: "指定されたフォーマットに従ったコミットメッセージ"
     pull_request: "Issue番号を参照するPull Requestを自動作成"
 
 # 3. Automation Settings
@@ -248,10 +348,20 @@ automation_settings:
     enabled: true
     update_method: "github_api"
     
+  human_review_requirement:
+    enabled: true
+    wait_for_approval: true
+    approval_keywords: ["レビューOK", "LGTM", "Approved", "OK"]
+    
+  auto_commit_after_review:
+    enabled: true
+    trigger: "human_review_approval"
+    
   auto_pr_creation:
     enabled: true
     draft_mode: false
     auto_assign_reviewers: false
+    trigger: "after_commit"
     
   auto_issue_close:
     enabled: false  # デフォルトは無効、人間の確認を推奨
@@ -271,14 +381,16 @@ collaboration_patterns:
       - "タスクの実行計画策定と即座実行"
       - "コード実装とテスト"
       - "チェックボックスの自動更新"
-      - "Pull Request作成"
+      - "レビュー依頼の作成"
+      - "レビューOK後のコミット・PR作成"
       - "進捗状況の追跡と報告"
       - "技術的問題の初期分析"
       
     human_responsibilities:
+      - "作業完了後の品質レビュー"
+      - "レビューOKの判断"
       - "Pull Requestのレビューと承認"
       - "技術的判断の最終決定（必要時）"
-      - "品質基準の確認"
       - "Issue完了の最終承認"
       - "複雑な問題の解決支援"
       
@@ -287,10 +399,11 @@ collaboration_patterns:
       - "標準的なコーディングパターンの選択"
       - "既存コードスタイルに従った実装"
       - "明確に定義されたタスクの実行方法"
-      - "ブランチ作成とPR作成"
-      - "チェックボックス更新"
+      - "ブランチ作成とチェックボックス更新"
       
     collaborative_decisions:
+      - "作業完了の品質確認（必須レビュー）"
+      - "コミット・PR作成の最終判断"
       - "アーキテクチャの重要な変更"
       - "新しい依存関係の追加"
       - "パフォーマンスに影響する実装選択"
@@ -299,6 +412,10 @@ collaboration_patterns:
 # 5. Success Metrics
 # ------------------
 success_metrics:
+  issue_retrieval_success:
+    measure: "Issue取得の成功率"
+    target: "100%（確実にIssue内容を取得）"
+    
   task_completion:
     measure: "完了したタスクの割合"
     target: "100%（すべてのタスクが完了）"
@@ -307,12 +424,16 @@ success_metrics:
     measure: "完了の定義への準拠度"
     target: "100%（すべての完了基準を満たす）"
     
+  review_process_effectiveness:
+    measure: "人間レビューによる品質向上"
+    target: "レビューによる問題発見・修正の実施"
+    
   efficiency:
     measure: "並列実行によるタスク完了時間の短縮"
     target: "逐次実行と比較して30%以上の時間短縮"
     
   automation_effectiveness:
-    measure: "手動介入が必要だった作業の割合"
+    measure: "手動介入が必要だった作業の割合（レビューを除く）"
     target: "10%以下（90%以上の作業が自動化）"
     
   collaboration_effectiveness:
