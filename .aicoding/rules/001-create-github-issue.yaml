@@ -1,0 +1,401 @@
+# AI-Driven Development Rules
+# Version: 1.8 (/tmpディレクトリ使用の推奨)
+# Description: Rules for AI-driven development, where AI generates GitHub Issues based on input (e.g., feature requests, user stories, partial specifications) and humans review and collaboratively refine them before registration. These rules guide AI generation, human review, collaborative refinement processes, and task execution, using tools like Cursor and Windsurf, with a focus on agile practices and parallel AI task execution.
+
+# Introduction
+# 本ルールは、AIがプロダクトの要求事項や大まかな仕様（機能要求の概要、ユーザーストーリー、仕様書の一部など）に基づいてGitHub Issueの初期ドラフトを自動生成し、
+# その後、人間が内容の妥当性、網羅性、および本ルールへの準拠を確認・修正・追記し、AIと人間が共同でIssueを完成させた上で登録する、
+# という開発プロセスを支援することを目的とします。
+# AIは本ルールに定義された構造と原則に従ってIssue内容を生成するよう努め、
+# 人間はAIが生成したIssueをレビューし、必要に応じてAIと対話しながら内容を洗練させ、最終的な品質を担保します。
+
+# 1. GitHub Issue Management
+# --------------------------
+github_issue_management:
+  backlog_registration:
+    platform: "GitHub Issues"
+    rule: "AIによって初期生成され、人間との共同作業によって完成されたすべてのプロダクトバックログアイテムおよびスプリントバックログアイテムは、GitHub Issueとして登録する。"
+    note: "追跡可能な作業単位は、AIによる初期ドラフト生成と、人間によるレビュー・改善プロセスを経てIssue化される。"
+
+  issue_structure:
+    title_format: "[種別] Issueの目的が明確にわかるタイトル (AIがこの形式でタイトル案を生成。人間は形式の準拠と内容の適切性、具体性を最終確認・修正)"
+    sections:
+      - name: "🎯 概要 (Overview)"
+        description: "AIは、与えられたインプットに基づき、このIssueで達成すべきゴール、開発背景、期待される成果などを具体的に記述した概要案を生成する。人間は、その内容が元の要求を正しく反映し、明確かつ網羅的であるかを確認し、必要に応じて加筆・修正する。"
+        content_type: "markdown"
+
+      - name: "📝 タスクリスト (Tasks)"
+        description: |
+          AIは、Issueの概要と完了の定義に基づき、新人・駆け出しエンジニアが見ても手順を理解し、実行できるように具体的なタスク案を生成する。
+          各タスクは独立して完了確認ができる単位で記述し、チェックボックス (`- [ ]`) 形式とする。
+          AIは、並列作業を最優先とし、タスクの順序は依存関係がない限り並列実行可能なように配置案を作成し、各タスクの並列実行可能性を行頭の絵文字で明示する。
+          人間は、生成されたタスクリストが、詳細度、分割の適切さ、並列性の考慮、絵文字の正確さ、手順の論理性、網羅性において適切かレビューし、AIと対話しながら、または直接編集して改善する。
+        task_item_guidelines: # AIへの指示、人間のレビューポイント
+          - "AIは具体的な作業手順案を生成する。人間は手順の明確さ、具体性、実現可能性を確認・改善する。"
+          - "AIは各タスクの完了条件が明確になるように記述案を生成する。人間は条件の妥当性、検証可能性を確認・改善する。"
+          - "AIは想定される依存関係のあるタスクを明記する。人間は依存関係の正確性、網羅性を確認・改善する。"
+        parallel_execution_indicator: # AIへの指示、人間のレビューポイント
+          description: |
+            AIは、Issue内のタスク群や個々のタスクが並列処理可能か、あるいは逐次処理が必要かを視覚的に示すために、ラベルや絵文字を使用したタスクリスト案を生成する。
+            人間は、この表示が適切であるか（AIや人間によるタスクの並列実行を実際に促進するか）を確認し、必要に応じて修正する。
+          options:
+            - type: "label"
+              usage: "AIはIssue全体、または主要なタスクのカタマリに対して適切なラベルを提案する。人間はラベルの妥当性を確認し、最終的に適用する。"
+              suggested_labels:
+                - name: "🤖-parallel-ok"
+                  description: "このIssue内のタスクの多くはAIによる並列処理が可能"
+                  color: "0E8A16" # Green
+                  notes: "複数のAIエージェントまたはAIツールが同時に異なるタスクに取り組める状態を示す。"
+                - name: "🚧-sequential-required"
+                  description: "このIssue内のタスクは主に逐次処理が必要"
+                  color: "D93F0B" # Red
+                  notes: "タスク間に強い依存関係があり、順番に処理する必要がある状態を示す。"
+            - type: "emoji_in_task_description"
+              usage: |
+                AIは、原則として各タスクアイテムの行頭に、そのタスクが他の ✨ マーク付きタスクと並列実行可能か (✨)、
+                あるいは先行タスクの完了を待つ必要があるか (➡️) を示す絵文字を付与したタスクリスト案を生成する。
+                人間は、この絵文字の割り当てがタスクの性質と依存関係に照らして正確であるかを確認し、必要に応じて修正する。
+              suggested_emojis:
+                - emoji: "✨"
+                  meaning: "このタスク/タスクグループは（他の✨マーク付きタスクと）並列実行可能"
+                - emoji: "➡️"
+                  meaning: "このタスクは先行タスク完了後に実行 (逐次実行)"
+
+      - name: "✅ 完了の定義 (Definition of Done)"
+        description: "AIは、Issueの概要とタスクリスト案に基づき、このIssue全体が「完了」とみなされるための具体的な基準案を、客観的に判断可能な形でリストアップする。人間は、その基準が明確、測定可能、達成可能、関連性があり、かつ網羅的であるか（例：SMART原則）を確認し、必要に応じて加筆・修正する。"
+        criteria_examples:
+          - "すべてのタスクリストのチェックボックスがチェックされている。"
+          - "実装された機能が受け入れ基準を満たしている（該当する場合、テストケースIDなどを記載）。"
+          - "関連するドキュメントが更新されている。"
+          - "コードレビューが完了し、承認されている。"
+          - "メインブランチへのマージが完了している。"
+
+      - name: "🛠️ 使用ツール (Development Tools)"
+        description: "AIは、このIssueのタスクを実行する上で主に使用が推奨されるAI駆動開発ツールを記述した案を生成する。人間は、ツールの選定がタスク内容に対して適切かを確認し、プロジェクト固有のツールやライブラリを必要に応じて追記・修正する。"
+        primary_tools: ["Cursor", "Windsurf"] # AIがデフォルトで含めるべきツール
+        notes: "人間がレビュー時に、プロジェクト固有のツールやライブラリを追記することを検討する。"
+
+  task_creation_principles: # AIによる生成時の原則 兼 人間によるレビュー・改善時の確認原則
+    detail_level: "AIは、新人・駆け出しエンジニアがタスクの意図と手順を明確に理解できる詳細度でタスク内容案を生成する。人間は、この詳細度が達成されているかを確認し、不足があればAIに指示するか直接加筆して改善する。"
+    granularity_for_parallelism: |
+      AIは、タスクをAI自身や他のAI、または人間が並列して作業できる最小論理単位を意識して分割し、タスクの順序もこれを最大限考慮した案を生成する。
+      人間は、この分割と順序が、実際の並列作業を促進し、非効率な依存関係を生んでいないかを確認し、必要に応じて改善する。
+    explicit_parallelizability_per_task: |
+      AIは、各タスクアイテムについて、並列実行が可能か、それとも逐次実行が必要かを、
+      `parallel_execution_indicator`で定義された絵文字等を用いて行頭に明示したタスクリスト案を生成する。人間は、この明示がタスクの性質と依存関係に照らして正確かつ適切であるかを確認し、必要に応じて修正する。
+    checkbox_mandatory: "AIは、すべての実行すべき作業単位をチェックボックス形式 (`- [ ]`) で生成する。人間は、これが守られているか確認し、必要に応じて修正する。"
+    responsibility_for_finalizing_issue: |
+      人間は、AIが生成したIssue案をレビューし、必要に応じてAIと対話しながら、または直接編集を行うことで、
+      本ルールに定義された原則（特に概要の正確性、タスクリストの詳細度・並列性・網羅性、完了定義の明確性）を満たすようにIssueを完成させ、
+      その品質に対して最終的な責任を持つ。
+
+  ai_clarification_process: # 新規追加セクション
+    name: "AIによる構造化質問プロセス"
+    description: "AIが提供された情報に不明点や曖昧さがある場合に、効果的な質問を通じて必要な情報を収集するためのプロセスを定義します。"
+    trigger_conditions:
+      - "提供された要求事項が抽象的すぎて、具体的なタスクに分解できない場合"
+      - "技術的な前提条件や制約が不明で、適切なツール選択やアプローチが判断できない場合"
+      - "ユーザーへの価値や期待される成果が曖昧で、完了の定義を明確化できない場合"
+      - "既存システムとの関連性や影響範囲が不明で、依存関係を特定できない場合"
+      - "優先度や期限などの制約が不明で、タスクの粒度や並列性の判断ができない場合"
+    question_format:
+      structure: |
+        AIは以下の構造化された形式で質問を行う：
+        1. **質問の背景**: なぜこの情報が必要なのかを説明
+        2. **具体的な質問**: 明確で答えやすい形で質問を提示
+        3. **提案**: 可能であれば、AIが推測する選択肢や方向性を提示
+        4. **影響**: この情報がIssue作成にどう影響するかを説明
+      principles:
+        - "一問一答形式で、一度に1つの明確な質問をする"
+        - "オープンクエスチョンよりもクローズドクエスチョンを優先し、選択肢を提示する"
+        - "質問の背景と目的を明確に説明し、人間が回答の重要性を理解できるようにする"
+        - "AIの推測や提案を含めることで、人間の思考を促進し、回答を容易にする"
+        - "質問が多岐にわたる場合は、優先度順に整理して段階的に質問する"
+    question_examples:
+      - category: "技術的前提条件"
+        example: |
+          **質問の背景**: 適切なタスク分割と使用ツールの選定のため、技術スタックの詳細が必要です。
+          
+          **質問**: このプロジェクトで使用している主要なフレームワークは何でしょうか？
+          
+          **提案**: 以下から選択いただくか、その他の場合は具体的にお教えください：
+          - React + TypeScript
+          - Vue.js 3 + Composition API
+          - Next.js
+          - その他: [具体的なフレームワーク名]
+          
+          **影響**: この情報により、適切なコンポーネント設計、状態管理の選択、テスト戦略を含むタスクリストを作成できます。
+      - category: "機能の詳細仕様"
+        example: |
+          **質問の背景**: 具体的なタスクに分解し、完了の定義を明確化するため、機能の詳細な動作仕様が必要です。
+          
+          **質問**: ユーザープロフィール編集機能で、どの項目を編集可能にしたいでしょうか？
+          
+          **提案**: 一般的には以下のような項目が考えられますが、どれを含めますか？
+          - [ ] 表示名（ニックネーム）
+          - [ ] 自己紹介文
+          - [ ] アバター画像
+          - [ ] メールアドレス
+          - [ ] その他: [具体的な項目名]
+          
+          **影響**: 編集項目により、バリデーションルール、API設計、UIコンポーネントの複雑さが決まり、タスクの粒度と並列性に影響します。
+      - category: "制約と優先度"
+        example: |
+          **質問の背景**: タスクの粒度と開発アプローチを決定するため、プロジェクトの制約を把握する必要があります。
+          
+          **質問**: この機能の開発期限や優先度はどの程度でしょうか？
+          
+          **提案**: 以下のような状況のうち、どれに近いでしょうか？
+          - 高優先度・短期間（1-2週間）: 最小限の機能で素早くリリース
+          - 中優先度・中期間（1ヶ月程度）: 基本機能を充実させて安定性重視
+          - 低優先度・長期間（2ヶ月以上）: 拡張性とユーザビリティを重視した設計
+          
+          **影響**: 優先度により、タスクの分割方法、テストの詳細度、並列開発の積極性が変わります。
+
+  collaborative_issue_creation_process: # 既存セクションを更新
+    name: "AIと人間の協調的Issue作成プロセス"
+    description: "AIと人間が反復的に協力して高品質なIssueを作り上げるための標準的なプロセスステップを定義します。"
+    steps:
+      - step_id: "S1"
+        title: "初期要求の提示"
+        actors: ["人間"]
+        action: "人間は、AIに対し機能要求の概要、ユーザーストーリー、仕様書の一部などの初期情報をインプットとして提供する。"
+        key_inputs: ["機能要求", "ユーザーストーリー", "仕様書断片"]
+        key_outputs: ["初期要求情報"]
+      - step_id: "S1.5"
+        title: "AIによる構造化質問（必要に応じて）"
+        actors: ["AI"]
+        action: "AIは、提供された情報を分析し、高品質なIssue作成に必要な情報が不足している場合、`ai_clarification_process`で定義された形式に従って構造化された質問を行う。人間は質問に回答し、必要な詳細情報を提供する。"
+        key_inputs: ["初期要求情報"]
+        key_outputs: ["明確化された要求情報", "追加の詳細情報"]
+        trigger_condition: "初期要求情報が不完全または曖昧な場合"
+        iteration_note: "必要に応じて複数回の質問と回答を繰り返す"
+      - step_id: "S2"
+        title: "AIによるIssue初期ドラフト生成"
+        actors: ["AI"]
+        action: "AIは、明確化された要求情報と本ルールに基づき、Issueの各セクション（概要、タスクリスト案、完了定義案など）を含む初期ドラフトを生成する。"
+        key_inputs: ["明確化された要求情報", "追加の詳細情報"]
+        key_outputs: ["Issue初期ドラフト"]
+      - step_id: "S3"
+        title: "人間によるレビューとフィードバック、または直接編集"
+        actors: ["人間"]
+        action: "人間は、AIが生成したIssue初期ドラフトを本ルールに照らして詳細にレビューする。改善点、不足情報、明確化が必要な点を特定し、具体的な修正指示としてAIにフィードバックするか、または直接ドラフトを編集する。"
+        key_inputs: ["Issue初期ドラフト"]
+        key_outputs: ["レビュー済みドラフト", "AIへのフィードバック", "部分的に編集されたドラフト"]
+      - step_id: "S4"
+        title: "AIによる修正・改善、または人間による継続編集 (反復ループ)"
+        actors: ["AI", "人間"]
+        action: "人間からのフィードバックに基づき、AIはIssueドラフトを修正・改善する。または、人間が継続して編集を行う。このステップは、人間がIssueの内容と品質に満足するまで、ステップS3とS4を反復する。"
+        key_inputs: ["レビュー済みドラフト", "AIへのフィードバック", "部分的に編集されたドラフト"]
+        key_outputs: ["修正・改善されたIssueドラフト"]
+        iteration_trigger: "人間による追加の修正要求または改善指示"
+        iteration_completion_condition: "人間がIssueの品質が次のステップに進むのに十分であると判断した場合"
+      - step_id: "S5"
+        title: "人間による最終確認と承認"
+        actors: ["人間"]
+        action: "人間は、十分に洗練されたIssueドラフトの内容を最終確認し、本ルールで定義された全ての基準を満たし、Issueとして登録する価値があると判断した場合に承認する。"
+        key_inputs: ["修正・改善されたIssueドラフト"]
+        key_outputs: ["承認済みIssueドラフト"]
+      - step_id: "S6"
+        title: "Issue登録"
+        actors: ["人間"]
+        action: "人間は、承認されたIssueドラフトをGitHub（または指定されたバックログ管理システム）にIssueとして登録する。"
+        key_inputs: ["承認済みIssueドラフト"]
+        key_outputs: ["登録済みIssue"]
+    process_guidelines:
+      - "このプロセスは厳格なウォーターフォールではなく、状況に応じてステップ間を柔軟に行き来することを許容するアジャイルな精神で行う。"
+      - "AIとの対話は、明確かつ具体的な指示で行うことを心がける。"
+      - "人間は、AIの提案を鵜呑みにせず、常に批判的思考と専門的知見をもってレビューと判断を行う。"
+      - "AIは、不明点がある場合は推測でIssueを作成せず、必ず構造化質問を通じて必要な情報を収集する。"
+      - "目標は、AIを活用して効率的に、かつ高品質なIssueを共同で作成することである。"
+
+# 2. AI Task Execution (生成・登録されたIssueを「実行」する段階のルール)
+# --------------------
+ai_task_execution_guidelines:
+  tool_selection:
+    rule: "タスクの特性に応じて、Cursor、Windsurf等のAIツールを適切に選択・活用する。"
+    notes: "コード生成、リファクタリング、テストコード作成など、ツールの得意分野を活かす。"
+  parallel_processing_approach:
+    when_label_indicates_parallel_ok: "Issueに `🤖-parallel-ok` ラベルが付与されている場合、またはタスクに ✨ 絵文字がある場合、担当者（人間またはAI）は複数のAIインスタンスやAI機能を同時に使用して、異なるタスクに並行して取り組むことを積極的に検討する。"
+    when_label_indicates_sequential_required: "Issueに `🚧-sequential-required` ラベルが付与されている場合、またはタスクに ➡️ 絵文字がある場合、タスクの依存関係を厳密に守り、先行タスクの完了を確認してから次のタスクに着手する。"
+  human_oversight:
+    rule: "AIによって生成されたコードや成果物は、必ず人間がレビューし、品質と要求事項への適合性を確認する。"
+    frequency: "タスク完了ごと、またはマージ前に実施する。"
+
+# 3. General Principles for AI-Driven Development
+# ----------------------------------------------
+general_principles:
+  collaborative_improvement: "AIと人間が協力してIssueや成果物の品質を継続的に改善していく。AIの提案を鵜呑みにせず、人間の判断と経験を活かす。"
+  agile_mindset: "反復的な開発、継続的なフィードバック、変化への適応を重視する。"
+  experimentation: "新しいAIツールの活用方法やプロンプトエンジニアリングの改善に積極的に取り組み、知見をチームで共有する。"
+  transparency: "AIの使用状況、タスクの進捗、課題はチーム全体で見えるようにする。"
+
+# 4. Example GitHub Issue Content (Based on the rules above)
+# ---------------------------------------------------------
+example_github_issue_content:
+  description: |
+    以下は、AIが生成すべきGitHub Issueの理想的な記述例であり、人間がレビューし、共同で完成させる際の基準ともなります。
+    実際のIssueでは、AIがこれらのセクションを含む初期ドラフトをMarkdown形式で生成し、人間がその内容を精査・修正・追記して完成させます。
+  markdown_example: |
+    # [機能追加] ユーザープロフィール編集機能の実装
+
+    ## 🎯 概要 (Overview)
+
+    ユーザーが自身のプロフィール情報（表示名、自己紹介文、アバター画像）を編集し、更新できるようにする機能を追加します。
+    この機能により、ユーザーはプラットフォーム上でより自己表現豊かになり、他のユーザーとのコミュニケーションが活性化されることを目指します。
+
+    ## 📝 タスクリスト (Tasks)
+
+    ✨ **フェーズ1: UIコンポーネント開発 (このフェーズ内のタスクは互いに並列、かつ他の ✨ 付きタスクとも並列可能)**
+    - [ ] ✨ **タスク1.1**: プロフィール編集フォームの基本UIコンポーネント作成 (`ProfileEditForm.vue`)
+      - [ ] ✨ 表示名入力フィールド (テキスト)
+      - [ ] ✨ 自己紹介文入力フィールド (テキストエリア)
+      - [ ] ✨ 現在のアバター画像表示エリア
+      - [ ] ✨ アバター画像変更ボタン
+      - [ ] ✨ 保存ボタン、キャンセルボタン
+    - [ ] ✨ **タスク1.2**: アバター画像アップロード・プレビュー用UIコンポーネント作成 (`AvatarUploader.vue`)
+      - [ ] ✨ ファイル選択機能
+      - [ ] ✨ 選択画像のクライアントサイドプレビュー機能
+      - [ ] ✨ 画像形式・サイズバリデーションの表示エリア
+    - [ ] ✨ **タスク1.3**: 入力バリデーションエラー表示用UIコンポーネント作成 (`InputErrorDisplay.vue`)
+
+    ➡️ **フェーズ2: APIクライアント実装 (フェーズ1の主要コンポーネント完了後)**
+    - [ ] ✨ **タスク2.1**: 既存ユーザープロフィール取得APIのクライアント関数実装 (`GET /api/v1/users/me/profile`)
+    - [ ] ✨ **タスク2.2**: プロフィール情報更新APIのクライアント関数実装 (`PUT /api/v1/users/me/profile`)
+      - [ ] ➡️ 表示名、自己紹介文の更新処理 (APIクライアント関数実装後)
+    - [ ] ✨ **タスク2.3**: アバター画像アップロードAPIのクライアント関数実装 (`POST /api/v1/users/me/avatar`)
+      - *依存タスク: タスク1.2 (AvatarUploaderからのファイルデータ受け渡し)*
+
+    ✨ **フェーズ3: 状態管理とビジネスロジック実装 (フェーズ1の基本UIと並行、またはAPIクライアント実装後)**
+    - [ ] ✨ **タスク3.1**: プロフィール編集画面用の状態管理ストア（例: Pinia/Vuex）セットアップ
+      - [ ] ✨ プロフィールデータ（表示名、自己紹介文、アバターURL）の保持
+      - [ ] ✨ 編集中の入力値の保持
+      - [ ] ✨ ローディング状態、エラー状態の保持
+    - [ ] ✨ **タスク3.2**: フォーム入力と状態管理ストアの双方向データバインディング実装
+    - [ ] ➡️ **タスク3.3**: 「保存」ボタンクリック時のロジック実装 (バリデーション、API呼び出し)
+      - [ ] ➡️ 入力値のクライアントサイドバリデーション実行
+      - [ ] ➡️ バリデーション成功時、タスク2.2, 2.3のAPIクライアント関数を呼び出し
+      - [ ] ➡️ APIレスポンスに基づいた状態更新（成功時メッセージ表示、エラー時メッセージ表示）
+    - [ ] ✨ **タスク3.4**: 「キャンセル」ボタンクリック時のロジック実装（編集内容の破棄、初期状態復元）
+
+    ➡️ **フェーズ4: 統合とテスト (上記主要タスク完了後)**
+    - [ ] ➡️ **タスク4.1**: 作成したUIコンポーネント、APIクライアント、状態管理/ロジックを統合し、プロフィール編集ページを完成させる。
+    - [ ] ✨ **タスク4.2**: ユニットテスト作成 (各コンポーネント、状態管理ストアの主要なロジック) (統合と並行可能)
+    - [ ] ➡️ **タスク4.3**: 結合テスト作成 (フォーム入力からAPI連携までの一連のフロー) (統合後)
+      - [ ] ➡️ プロフィール更新成功ケース
+      - [ ] ➡️ プロフィール更新失敗ケース（バリデーションエラー、APIエラー）
+      - [ ] ➡️ アバター画像アップロード成功/失敗ケース
+    - [ ] ✨ **タスク4.4**: 主要ブラウザでの表示・動作確認 (Chrome, Firefox, Safari, Edge) (統合後、テストと並行可能)
+    - [ ] ✨ **タスク4.5**: レスポンシブデザインの確認 (スマートフォン表示) (統合後、テストと並行可能)
+
+    ## ✅ 完了の定義 (Definition of Done)
+
+    - 上記「タスクリスト」のすべてのチェックボックスが完了（チェック済み）となっている。
+    - ユーザーが表示名、自己紹介文を編集し、「保存」ボタンを押すと、情報が正常に更新され、画面に反映される。
+    - ユーザーが新しいアバター画像をアップロードすると、それが新しいアバターとして設定され、画面に反映される。
+    - 不正な入力（例: 表示名が空、自己紹介文が長すぎる等）の場合、適切なエラーメッセージが表示される。
+    - API通信エラーが発生した場合、ユーザーにエラーが通知される。
+    - 「キャンセル」ボタンを押すと、編集内容が破棄され、編集前の状態に戻る。
+    - 作成された機能に関するユニットテストおよび結合テストがすべてパスしている。
+    - コードはスタイルガイドに従っており、2名以上のレビュアーによって承認されている。
+    - 関連するドキュメント（あれば）が更新されている。
+    - 機能がメインブランチ（例: `develop` または `main`）にマージされている。
+
+    ## 🛠️ 使用ツール (Development Tools)
+
+    - **AI駆動開発ツール**:
+      - Cursor (主にコード生成、リファクタリング、既存コード理解に使用)
+      - Windsurf (主にUIコンポーネントの雛形生成、テストコード生成に使用)
+    - **主要ライブラリ/フレームワーク**:
+      - Vue.js 3 (Composition API)
+      - Pinia (状態管理)
+      - Axios (HTTPクライアント)
+      - Vitest (テストフレームワーク)
+    - **その他**:
+      - ESLint, Prettier (コードフォーマット、静的解析)
+
+    ---
+    **このIssueに付与が推奨されるラベル例:**
+    - `kind/feature` (機能追加)
+    - `priority/high` (優先度)
+    - `status/todo` (初期ステータス)
+    - `component/profile` (関連コンポーネント)
+    - `🤖-parallel-ok` (タスクの多くが並列処理可能であることを示す)
+
+# 5. GitHub Issue Registration
+# ----------------------------
+github_issue_registration:
+  tool: "gh CLI"
+  description: "完成したGitHub IssueをGitHubリポジトリに登録するために、GitHub公式CLIツール（gh）を使用する。"
+  file_management:
+    recommended_location: "/tmp"
+    rationale: 
+      - "一時的な作業ファイルとして/tmpディレクトリを使用"
+      - "システム再起動時に自動クリーンアップされる"
+      - "プロジェクトディレクトリを散らかさない"
+      - "GitHubが真の情報源（Single Source of Truth）となる"
+    reuse_strategy:
+      - "再利用したい場合は/tmpに残っていれば使用"
+      - "ファイルが存在しない場合はGitHubから取得（gh issue view）"
+      - "ローカルファイルの永続化は不要"
+  prerequisites:
+    - "gh CLI がインストールされ、認証済みであること"
+    - "GitHubリポジトリ内で実行すること"
+    - "完成したIssueがMarkdown形式で/tmpに保存されていること"
+  basic_usage:
+    command: "gh issue create --title \"タイトル\" --body-file /tmp/issue-draft.md"
+    description: "/tmpのMarkdownファイルからタイトルと本文を指定してIssueを作成"
+  advanced_usage:
+    with_labels:
+      command: "gh issue create --title \"タイトル\" --body-file /tmp/issue-draft.md --label \"🤖-parallel-ok\" --label \"kind/feature\""
+      description: "ラベルを指定してIssueを作成"
+    with_assignee:
+      command: "gh issue create --title \"タイトル\" --body-file /tmp/issue-draft.md --assignee username"
+      description: "担当者を指定してIssueを作成"
+    with_milestone:
+      command: "gh issue create --title \"タイトル\" --body-file /tmp/issue-draft.md --milestone 1"
+      description: "マイルストーンを指定してIssueを作成"
+    comprehensive:
+      command: "gh issue create --title \"[機能追加] ユーザープロフィール編集機能\" --body-file /tmp/issue-draft.md --label \"🤖-parallel-ok\" --label \"kind/feature\" --assignee developer --milestone 1"
+      description: "タイトル、ラベル、担当者、マイルストーンを全て指定"
+  issue_retrieval:
+    view_command: "gh issue view <issue-number>"
+    export_command: "gh issue view <issue-number> --json body -q .body > /tmp/template.md"
+    description: "既存のIssueをテンプレートとして再利用する場合の取得方法"
+  recommended_labels:
+    parallel_processing:
+      - "🤖-parallel-ok: タスクの多くが並列処理可能"
+      - "🚧-sequential-required: 主に逐次処理が必要"
+    issue_types:
+      - "kind/feature: 機能追加"
+      - "kind/bug: バグ修正"
+      - "kind/improvement: 改善"
+      - "kind/refactoring: リファクタリング"
+    priorities:
+      - "priority/high: 高優先度"
+      - "priority/medium: 中優先度"
+      - "priority/low: 低優先度"
+
+# 6. Integration with Development Workflow
+# ----------------------------------------
+development_workflow_integration:
+  recommended_process:
+    - step: "要求事項の発生"
+      action: "ステークホルダーから機能要求、バグレポート、改善提案などが提起される"
+    - step: "AIツールでのIssue生成"
+      action: "Cursor/WindsurfでIssue作成プロンプトを使用し、要求事項に基づいてIssue初期ドラフトを生成"
+    - step: "協調的改善プロセス"
+      action: "人間がAI生成ドラフトをレビューし、必要に応じてAIと対話しながら改善"
+    - step: "一時ファイル保存"
+      action: "完成したIssueをMarkdown形式で/tmpディレクトリに保存（例: /tmp/issue-draft.md）"
+    - step: "GitHub Issue登録"
+      action: "gh CLI を使用してGitHubにIssueを登録"
+    - step: "自動クリーンアップ"
+      action: "一時ファイルはシステム再起動時に自動削除される"
+    - step: "開発実行"
+      action: "登録されたIssueに基づき、AIツールを活用した並列開発を実行"
+  automation_opportunities:
+    - "CI/CDパイプラインとの統合による自動Issue登録"
+    - "プルリクエスト作成時の関連Issue自動生成"
+    - "Issue品質メトリクスの自動測定と改善提案"
+    - "定期的なIssue状況レポートの自動生成"

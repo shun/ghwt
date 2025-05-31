@@ -1,0 +1,320 @@
+# AI-Driven Development Rules - Issue Execution
+# Version: 2.0
+# Description: Rules for executing tasks from a specified GitHub Issue number with automated branch management, PR creation, and issue completion workflow.
+
+# Introduction
+# 本ルールは、指定されたGitHub Issue番号に基づいて、そのIssueに定義されたタスクを効率的に実行するプロセスを支援することを目的とします。
+# AIは指定されたIssueの内容を理解し、自動的にブランチを作成し、タスクリストに従って作業を実行し、PRを作成してIssueの完了を目指します。
+
+# 1. Issue Task Execution Management
+# ----------------------------------
+issue_task_execution:
+  issue_identification:
+    input_format: "GitHub Issue番号（例：#123、123、issue-123など）"
+    rule: "AIは指定されたIssue番号から該当するIssueの内容を取得し、タスクリストと完了の定義を理解する。"
+    note: "Issue番号が不明確な場合は、明確化のための質問を行う。"
+
+  automated_workflow:
+    branch_management:
+      rule: "Issue実行開始時に自動的にブランチを作成する"
+      naming_convention: "feature/issue-{issue_number}-{sanitized_title}"
+      example: "feature/issue-123-cli-interface-specification"
+      base_branch: "main"
+      
+    pull_request_creation:
+      rule: "タスク完了後に自動的にPull Requestを作成する"
+      title_format: "#{issue_number}: {issue_title}"
+      body_template: |
+        ## 📋 Issue #{issue_number} の実装
+        
+        ### 🎯 概要
+        {issue_summary}
+        
+        ### ✅ 完了したタスク
+        {completed_tasks_list}
+        
+        ### 📝 変更内容
+        {changes_summary}
+        
+        ### 🔗 関連Issue
+        Closes #{issue_number}
+      
+    issue_completion:
+      checkbox_update:
+        rule: "各タスク完了時に自動的にIssue本文のチェックボックスを更新する"
+        method: "GitHub APIまたはGH CLIを使用してIssue本文を更新"
+        
+      completion_comment:
+        rule: "全タスク完了時に完了報告コメントを自動追加する"
+        template: |
+          ## ✅ Issue #{issue_number} 完了報告
+          
+          **{issue_title}** が正常に完了いたしました。
+          
+          ### 🎉 完了した成果物
+          {deliverables_list}
+          
+          ### 📋 実装内容
+          {implementation_summary}
+          
+          ### 🔗 Pull Request
+          #{pr_number}
+          
+      auto_close:
+        rule: "PR作成後、人間の確認を経てIssueを自動クローズする"
+        condition: "全てのタスクが完了し、PRが作成されている場合"
+
+  issue_content_analysis:
+    required_sections:
+      - name: "🎯 概要 (Overview)"
+        purpose: "Issueの目的と背景を理解し、作業の方向性を把握する"
+      - name: "📝 タスクリスト (Tasks)"
+        purpose: "実行すべき具体的なタスクと並列実行可能性を把握する"
+      - name: "✅ 完了の定義 (Definition of Done)"
+        purpose: "作業完了の基準を明確に理解する"
+      - name: "🛠️ 使用ツール (Development Tools)"
+        purpose: "推奨される開発ツールを確認する"
+    
+    analysis_process:
+      - step: "Issue内容の構造化理解"
+        action: "AIはIssueの各セクションを解析し、作業の全体像を把握する"
+      - step: "タスクの依存関係分析"
+        action: "各タスクの依存関係と並列実行可能性を分析する（✨、➡️絵文字を参考）"
+      - step: "技術的要件の抽出"
+        action: "使用技術、制約事項、前提条件を整理する"
+
+  task_execution_strategy:
+    parallel_execution_priority:
+      rule: "✨マークが付いたタスクは最優先で並列実行を検討する"
+      approach: "複数のタスクを同時に進行し、開発効率を最大化する"
+      
+    sequential_execution_handling:
+      rule: "➡️マークが付いたタスクは依存関係を尊重し、適切な順序で実行する"
+      approach: "先行タスクの完了を確認してから次のタスクに進む"
+
+    task_status_management:
+      format: "チェックボックス (`- [x]`) でタスクの完了状況を管理する"
+      update_frequency: "各タスク完了時に即座に更新する"
+      progress_reporting: "定期的に進捗状況を人間に報告する"
+      auto_update: "GitHub APIを使用してIssue本文のチェックボックスを自動更新する"
+
+  execution_process:
+    steps:
+      - step_id: "E0"
+        title: "ブランチ作成と作業環境準備"
+        actors: ["AI"]
+        action: "Issue番号とタイトルに基づいてブランチを作成し、作業環境を準備する"
+        commands:
+          - "git checkout -b feature/issue-{issue_number}-{sanitized_title}"
+          - "git push -u origin feature/issue-{issue_number}-{sanitized_title}"
+        key_inputs: ["Issue番号", "Issueタイトル"]
+        key_outputs: ["作業ブランチ"]
+        
+      - step_id: "E1"
+        title: "Issue番号の確認と内容取得"
+        actors: ["AI"]
+        action: "指定されたIssue番号からGitHub APIまたはコマンドラインツールを使用してIssue内容を取得する"
+        key_inputs: ["Issue番号"]
+        key_outputs: ["Issue詳細情報"]
+        
+      - step_id: "E2"
+        title: "タスク分析と実行計画策定"
+        actors: ["AI"]
+        action: "取得したIssue内容を分析し、タスクの優先度、依存関係、並列実行可能性を考慮した実行計画を策定する"
+        key_inputs: ["Issue詳細情報"]
+        key_outputs: ["実行計画", "タスク依存関係マップ"]
+        
+      - step_id: "E3"
+        title: "実行計画の提示と即座実行開始"
+        actors: ["AI"]
+        action: "AIが策定した実行計画を提示し、即座に実行を開始する。人間の承認を待たずに標準的なタスクは自動実行する"
+        key_inputs: ["実行計画", "タスク依存関係マップ"]
+        key_outputs: ["実行中の計画"]
+        
+      - step_id: "E4"
+        title: "タスク実行（並列・逐次）とリアルタイム更新"
+        actors: ["AI"]
+        action: "実行計画に従い、タスクを実行する。各タスク完了時にチェックボックスを自動更新し、進捗を可視化する"
+        key_inputs: ["実行計画"]
+        key_outputs: ["実行結果", "更新されたタスクリスト", "コミット履歴"]
+        automation:
+          - "タスク完了時のチェックボックス自動更新"
+          - "進捗コメントの自動追加"
+          - "コミットメッセージの自動生成"
+        
+      - step_id: "E5"
+        title: "Pull Request作成と完了報告"
+        actors: ["AI"]
+        action: "全タスク完了後、自動的にPull Requestを作成し、完了報告を行う"
+        key_inputs: ["完了したタスクリスト", "変更内容"]
+        key_outputs: ["Pull Request", "完了報告コメント"]
+        automation:
+          - "PR作成の自動化"
+          - "Issue完了コメントの自動追加"
+          - "関連Issueのリンク設定"
+        
+      - step_id: "E6"
+        title: "Issue自動クローズ（オプション）"
+        actors: ["AI", "人間"]
+        action: "PRが作成され、全ての完了条件を満たしている場合、Issueを自動クローズする"
+        key_inputs: ["完了確認", "PR作成確認"]
+        key_outputs: ["クローズされたIssue"]
+        condition: "auto_close設定が有効な場合のみ"
+
+  error_handling:
+    branch_creation_failure:
+      condition: "ブランチ作成に失敗した場合"
+      action: "既存ブランチの確認を行い、適切な名前で再作成を試行する"
+      
+    missing_issue:
+      condition: "指定されたIssue番号が存在しない場合"
+      action: "エラーメッセージを表示し、正しいIssue番号の確認を求める"
+      
+    incomplete_issue_structure:
+      condition: "Issueが必要なセクションを含んでいない場合"
+      action: "不足しているセクションを特定し、可能な範囲で推測して実行を継続する"
+      
+    task_execution_failure:
+      condition: "タスク実行中にエラーが発生した場合"
+      action: "エラー内容を分析し、解決策を提案する。必要に応じて人間の支援を求める"
+      
+    pr_creation_failure:
+      condition: "Pull Request作成に失敗した場合"
+      action: "エラー原因を分析し、手動でのPR作成手順を提示する"
+
+  communication_guidelines:
+    progress_updates:
+      frequency: "各タスク完了時、または重要な進捗があった時"
+      format: "タスク名、完了状況、次のステップを明記"
+      automation: "チェックボックス更新と同時に進捗コメントを自動追加"
+      
+    problem_reporting:
+      timing: "問題発生時は即座に報告"
+      content: "問題の詳細、影響範囲、提案する解決策"
+      
+    completion_notification:
+      timing: "すべてのタスク完了時"
+      content: "完了したタスクの要約、達成された成果、PR情報"
+      automation: "完了報告コメントの自動生成と投稿"
+
+  quality_assurance:
+    task_verification:
+      rule: "各タスク完了時に、完了の定義に照らして品質を確認する"
+      method: "自動テスト、手動確認、コードレビューなど適切な方法を選択"
+      
+    documentation_update:
+      rule: "関連するドキュメントが存在する場合は、変更に応じて更新する"
+      scope: "README、API仕様書、ユーザーガイドなど"
+      
+    code_quality:
+      rule: "コード変更を伴う場合は、プロジェクトのコーディング規約に従う"
+      tools: "リンター、フォーマッター、静的解析ツールを活用"
+
+# 2. Integration with Development Tools
+# ------------------------------------
+development_tools_integration:
+  primary_tools: ["Cursor", "Windsurf", "GitHub CLI", "Git"]
+  
+  github_cli_usage:
+    issue_retrieval: "gh issue view [issue_number] --json title,body,labels,state"
+    issue_update: "gh issue edit [issue_number] --body [updated_body]"
+    issue_comment: "gh issue comment [issue_number] --body [comment_text]"
+    issue_close: "gh issue close [issue_number] --comment [completion_message]"
+    pr_creation: "gh pr create --title [title] --body [body] --base main --head [branch]"
+    
+  git_workflow:
+    branch_creation: "git checkout -b feature/issue-{issue_number}-{sanitized_title}"
+    branch_push: "git push -u origin feature/issue-{issue_number}-{sanitized_title}"
+    commit_strategy: "各タスク完了時に意味のあるコミットを作成"
+    commit_message_format: "feat(#{issue_number}): {task_description}"
+    
+  cursor_windsurf_integration:
+    parallel_development: "複数のファイルやコンポーネントを同時に編集"
+    ai_assistance: "コード生成、リファクタリング、テスト作成の支援"
+    
+  version_control:
+    branch_strategy: "Issue番号を含むブランチ名を使用（例：feature/issue-123-cli-interface-spec）"
+    commit_message: "Issue番号を含むコミットメッセージ（例：feat(#123): implement CLI interface specification）"
+    pull_request: "Issue番号を参照するPull Requestを自動作成"
+
+# 3. Automation Settings
+# ----------------------
+automation_settings:
+  auto_branch_creation:
+    enabled: true
+    naming_pattern: "feature/issue-{issue_number}-{sanitized_title}"
+    
+  auto_checkbox_update:
+    enabled: true
+    update_method: "github_api"
+    
+  auto_pr_creation:
+    enabled: true
+    draft_mode: false
+    auto_assign_reviewers: false
+    
+  auto_issue_close:
+    enabled: false  # デフォルトは無効、人間の確認を推奨
+    condition: "all_tasks_completed_and_pr_created"
+    
+  progress_reporting:
+    auto_comment: true
+    frequency: "per_task_completion"
+
+# 4. Collaboration Patterns
+# -------------------------
+collaboration_patterns:
+  ai_human_roles:
+    ai_responsibilities:
+      - "Issue内容の解析と理解"
+      - "ブランチ作成と作業環境準備"
+      - "タスクの実行計画策定と即座実行"
+      - "コード実装とテスト"
+      - "チェックボックスの自動更新"
+      - "Pull Request作成"
+      - "進捗状況の追跡と報告"
+      - "技術的問題の初期分析"
+      
+    human_responsibilities:
+      - "Pull Requestのレビューと承認"
+      - "技術的判断の最終決定（必要時）"
+      - "品質基準の確認"
+      - "Issue完了の最終承認"
+      - "複雑な問題の解決支援"
+      
+  decision_making:
+    autonomous_decisions:
+      - "標準的なコーディングパターンの選択"
+      - "既存コードスタイルに従った実装"
+      - "明確に定義されたタスクの実行方法"
+      - "ブランチ作成とPR作成"
+      - "チェックボックス更新"
+      
+    collaborative_decisions:
+      - "アーキテクチャの重要な変更"
+      - "新しい依存関係の追加"
+      - "パフォーマンスに影響する実装選択"
+      - "セキュリティに関わる実装"
+
+# 5. Success Metrics
+# ------------------
+success_metrics:
+  task_completion:
+    measure: "完了したタスクの割合"
+    target: "100%（すべてのタスクが完了）"
+    
+  quality_compliance:
+    measure: "完了の定義への準拠度"
+    target: "100%（すべての完了基準を満たす）"
+    
+  efficiency:
+    measure: "並列実行によるタスク完了時間の短縮"
+    target: "逐次実行と比較して30%以上の時間短縮"
+    
+  automation_effectiveness:
+    measure: "手動介入が必要だった作業の割合"
+    target: "10%以下（90%以上の作業が自動化）"
+    
+  collaboration_effectiveness:
+    measure: "AI-人間間のコミュニケーション品質"
+    target: "明確で建設的なやり取り、問題の迅速な解決" 
