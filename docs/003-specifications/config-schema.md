@@ -238,13 +238,13 @@ root = "~/workspace/ghwt"
 ```rust
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 pub struct Config {
     #[serde(default)]
     pub core: CoreConfig,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 pub struct CoreConfig {
     #[serde(default = "default_root")]
     pub root: String,
