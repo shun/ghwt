@@ -76,6 +76,31 @@ ghwt get <url> [options]
 | `--force` | `-f` | boolean | false | 既存ディレクトリの上書き |
 | `--no-checkout` | - | boolean | false | 初期チェックアウトをスキップ |
 
+#### 処理フロー
+
+```mermaid
+flowchart TD
+    A["ghwt get <url>"] --> B{"URL形式有効?"}
+    B -->|No| C["Error: Invalid Git URL"]
+    B -->|Yes| D["リポジトリ名抽出"]
+    D --> E{"~/ghwt/<repo>存在?"}
+    E -->|Yes| F{"--force指定?"}
+    E -->|No| I["ディレクトリ作成"]
+    F -->|No| G["Error: Repository already exists"]
+    F -->|Yes| H["既存削除"]
+    H --> I
+    I --> J["git clone --bare"]
+    J --> K{"clone成功?"}
+    K -->|No| L["Error: Failed to clone"]
+    K -->|Yes| M{"--no-checkout?"}
+    M -->|Yes| N["完了"]
+    M -->|No| O["初期worktree作成"]
+    O --> P["git worktree add"]
+    P --> Q{"worktree作成成功?"}
+    Q -->|No| R["Error: Failed to create worktree"]
+    Q -->|Yes| S["完了"]
+```
+
 #### 標準出力
 **成功時:**
 ```
@@ -135,6 +160,41 @@ ghwt new [<repo>] <branch> [options]
 | `--track` | `-t` | string | - | 追跡するリモートブランチ |
 | `--force` | `-f` | boolean | false | 既存 worktree の上書き |
 | `--detach` | - | boolean | false | detached HEAD で作成 |
+
+#### 処理フロー
+
+```mermaid
+flowchart TD
+    A["ghwt new [repo] branch"] --> B{"repo指定?"}
+    B -->|No| C["現在ディレクトリから推測"]
+    B -->|Yes| D["指定repo使用"]
+    C --> E{"推測成功?"}
+    D --> F{"リポジトリ存在?"}
+    E -->|No| G["Error: Repository not found"]
+    E -->|Yes| F
+    F -->|No| G
+    F -->|Yes| H{"ブランチ名有効?"}
+    H -->|No| I["Error: Invalid branch name"]
+    H -->|Yes| J{"既存worktree?"}
+    J -->|Yes| K{"--force指定?"}
+    J -->|No| N["ブランチ存在確認"]
+    K -->|No| L["Error: Worktree already exists"]
+    K -->|Yes| M["既存worktree削除"]
+    M --> N
+    N --> O{"ローカルブランチ?"}
+    O -->|Yes| P["git worktree add"]
+    O -->|No| Q{"リモートブランチ?"}
+    Q -->|Yes| R["git worktree add --track"]
+    Q -->|No| S{"--detach指定?"}
+    S -->|Yes| T["git worktree add --detach"]
+    S -->|No| U["新規ブランチ作成"]
+    P --> V{"作成成功?"}
+    R --> V
+    T --> V
+    U --> V
+    V -->|No| W["Error: Failed to create"]
+    V -->|Yes| X["パス出力して完了"]
+```
 
 #### 標準出力
 **重要: 最終行に作成されたパスを出力**
@@ -257,6 +317,56 @@ ghwt rm <repo> <branch> [options]
 | `--force` | `-f` | boolean | false | 未保存変更があっても削除 |
 | `--dry-run` | `-n` | boolean | false | 削除対象の表示のみ |
 
+#### 削除前の安全性チェックフロー
+
+```mermaid
+flowchart TD
+    A["ghwt rm <repo> <branch>"] --> B{"GHWT管理下?"}
+    B -->|No| C["Error: Not a GHWT-managed repository"]
+    B -->|Yes| D{"Worktree存在?"}
+    D -->|No| E["Error: Worktree not found"]
+    D -->|Yes| F{"--force指定?"}
+    F -->|Yes| M["削除実行"]
+    F -->|No| G{"未コミット変更?"}
+    G -->|No| H{"アクティブworktree?"}
+    G -->|Yes| I["Warning表示"]
+    H -->|Yes| J["Error: Worktree is active"]
+    H -->|No| K["確認プロンプト"]
+    I --> L["確認プロンプト"]
+    K --> N{"ユーザー確認"}
+    L --> N
+    N -->|No| O["削除キャンセル"]
+    N -->|Yes| M
+    M --> P["削除完了"]
+```
+
+**確認プロンプトの例:**
+```
+Warning: Worktree has uncommitted changes:
+  M  src/main.rs
+  ?? new_file.txt
+
+This will permanently delete the worktree and all uncommitted changes.
+Continue? [y/N]: 
+```
+
+#### 削除実行プロセス
+
+```mermaid
+flowchart TD
+    A["削除実行開始"] --> B["git worktree remove <path>"]
+    B --> C{"Git削除成功?"}
+    C -->|No| D["Error: Git operation failed"]
+    C -->|Yes| E[".wt/<branch>/ ディレクトリ削除"]
+    E --> F{"他のworktree存在?"}
+    F -->|Yes| G["削除完了"]
+    F -->|No| H["最後のworktreeか確認"]
+    H --> I{"リポジトリ全体削除?"}
+    I -->|No| G
+    I -->|Yes| J["~/ghwt/<repo>/ 削除"]
+    J --> K["リポジトリ完全削除完了"]
+```
+
 #### 標準出力
 ```
 Removing worktree: ~/ghwt/myrepo/.wt/feature-auth
@@ -279,6 +389,7 @@ Worktree removed successfully
 ```
 Error: Worktree has uncommitted changes (use --force to remove anyway)
 Error: Worktree not found: ~/ghwt/myrepo/.wt/feature-auth
+Error: Not a GHWT-managed repository
 ```
 
 #### 終了コード
@@ -289,6 +400,7 @@ Error: Worktree not found: ~/ghwt/myrepo/.wt/feature-auth
 | 2 | 無効な引数 |
 | 3 | Worktree が見つからない |
 | 4 | 未保存変更あり |
+| 5 | GHWT管理下ではない |
 
 ### 2.5 `ghwt prune` - 古い Worktree のクリーンアップ
 
@@ -421,6 +533,38 @@ ghwt migrate <path> [options]
 |-----------|--------|----|---------|----|
 | `--backup` | `-b` | boolean | true | 元のリポジトリをバックアップ |
 | `--force` | `-f` | boolean | false | 確認なしで実行 |
+
+#### 処理フロー
+
+```mermaid
+flowchart TD
+    A["ghwt migrate <path>"] --> B{"パス存在?"}
+    B -->|No| C["Error: Repository not found"]
+    B -->|Yes| D{"Gitリポジトリ?"}
+    D -->|No| E["Error: Not a Git repository"]
+    D -->|Yes| F["リポジトリ名抽出"]
+    F --> G{"~/ghwt/<repo>存在?"}
+    G -->|Yes| H{"--force指定?"}
+    G -->|No| L["移行開始"]
+    H -->|No| I["Error: Destination already exists"]
+    H -->|Yes| J["既存削除"]
+    J --> K["確認プロンプト"]
+    K --> L
+    L --> M{"--backup有効?"}
+    M -->|Yes| N["バックアップ作成"]
+    M -->|No| P["bare変換開始"]
+    N --> O{"バックアップ成功?"}
+    O -->|No| Q["Error: Backup failed"]
+    O -->|Yes| P
+    P --> R["git clone --bare"]
+    R --> S{"変換成功?"}
+    S -->|No| T["Error: Conversion failed"]
+    S -->|Yes| U["worktree構造作成"]
+    U --> V["現在ブランチでworktree作成"]
+    V --> W{"作成成功?"}
+    W -->|No| X["Error: Worktree creation failed"]
+    W -->|Yes| Y["移行完了"]
+```
 
 #### 標準出力
 ```
@@ -662,6 +806,38 @@ Suggestion: Run 'ghwt config set core.root ~/ghwt' to initialize
 - 並列処理による高速化対応
 - メモリ使用量の最適化
 
+### 6.3 ディスク使用量の最適化
+
+#### 6.3.1 オブジェクト共有
+- bare repository による Git オブジェクトの共有
+- 複数 worktree 間でのディスク使用量削減
+- `git gc` による定期的な最適化
+
+#### 6.3.2 容量監視
+```bash
+# リポジトリごとの使用量確認
+du -sh ~/ghwt/*/
+
+# .bare ディレクトリの使用量
+du -sh ~/ghwt/*/.bare/
+
+# worktree の使用量
+du -sh ~/ghwt/*/.wt/*/
+```
+
+### 6.4 ファイルシステム操作の最適化
+
+#### 6.4.1 並行操作の制限
+- 同時実行可能な操作数の制限
+- I/O 負荷の分散
+- ロック機構による競合回避
+
+#### 6.4.2 キャッシュ戦略
+**リポジトリキャッシュの管理:**
+- レイアウト状態のキャッシュ
+- 最終確認時刻の記録
+- TTL (Time To Live) による自動無効化
+
 ---
 
 ## 7. セキュリティ考慮事項
@@ -672,11 +848,36 @@ Suggestion: Run 'ghwt config set core.root ~/ghwt' to initialize
 - シンボリックリンクの適切な処理
 - 権限チェックの実装
 
+#### 7.1.1 入力検証
+**リポジトリ名の検証:**
+- 危険な文字 (`..`, `/`) の検出と拒否
+- 長さ制限 (255文字以下)
+- 有効な文字のみ許可 ([a-zA-Z0-9_-])
+
+#### 7.1.2 パス正規化の強制
+**安全なパス結合:**
+- ベースパス外への脱出を検出
+- 正規化後のパスがベースパス内にあることを確認
+- 不正なパス操作の拒否
+
 ### 7.2 Git URL 検証
 
 - 悪意のあるURL の検出
 - プロトコル制限（https, ssh のみ）
 - 認証情報の安全な処理
+
+### 7.3 権限管理
+
+#### 7.3.1 最小権限の原則
+- 必要最小限の権限での操作
+- 他ユーザーからの読み取り制限
+- 実行権限の適切な設定
+
+#### 7.3.2 権限検証
+**ファイル・ディレクトリの権限確認:**
+- 他ユーザーからの書き込み権限を拒否
+- 適切な所有者の確認
+- セキュリティリスクのある権限設定の検出
 
 ---
 
