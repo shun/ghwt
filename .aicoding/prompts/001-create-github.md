@@ -1,6 +1,13 @@
 # GitHub Issue作成プロンプト
 
-GitHub Issue作成ルール（`.aicoding/rules/001-create-github-issue.yaml`）に従ったIssueを作成します。
+GitHub Issue作成ルール（`.aicoding/rules/001-create-github-issue.yaml`）と日付統一ルール（`.aicoding/rules/003-document-date-consistency.yaml`）に従ったIssueを作成します。
+
+## 📅 日付統一の自動適用
+
+**作業開始前に現在日付を確認します：**
+- `date '+%Y-%m-%d'` で正確な現在日付を取得
+- 作成するIssue内のドキュメント参照で統一日付を使用
+- YYYY-MM-DD形式で一貫性を保持
 
 まず、以下の情報を教えてください：
 
@@ -21,7 +28,8 @@ GitHub Issue作成ルール（`.aicoding/rules/001-create-github-issue.yaml`）�
 ---
 
 **プロセス**:
-1. 上記の情報を順次お聞きします
-2. 不明点があれば一問一答形式で質問します
-3. 情報が揃ったらIssueを生成します
-4. 生成されたIssueは `/tmp/issue-draft.md` に保存し、`gh issue create` コマンドで登録できます 
+1. 📅 現在日付の確認・統一適用
+2. 上記の情報を順次お聞きします
+3. 不明点があれば一問一答形式で質問します
+4. 情報が揃ったらIssueを生成します（日付統一済み）
+5. 生成されたIssueは `/tmp/issue-draft.md` に保存し、`gh issue create` コマンドで登録できます 
