@@ -1,11 +1,21 @@
 # GHWT CLI インターフェース完全仕様書
 
+**Version**: 1.0  
 **Date**: 2025-06-01  
 Version 1.0 — 2025-06-01
 
+## このドキュメントの役割
+
+- **対象読者**: 開発者、実装担当者、CLI利用者
+- **目的**: GHWT CLIコマンドの完全なインターフェース仕様を定義
+- **含む内容**: 全コマンドの構文、引数、オプション、入出力形式、エラーパターン
+- **他ドキュメントとの関係**: CLI実装の根拠となる仕様（実装時の参照ドキュメント）
+
 ## 概要
 
-本ドキュメントは GHWT (Git Worktree Tool) の CLI インターフェース完全仕様書である。
+本ドキュメントは GHWT (Git Worktree Tool) のCLIインターフェースの完全仕様書である。
+MVP版として実装される `ghwt get` と `ghwt new` コマンドの詳細な入出力仕様、
+エラーハンドリング、JSON出力形式を定義し、一貫性のあるCLI体験を確保する。
 MVPとして必要最小限のコマンド（`ghwt get`、`ghwt new`）の入出力仕様を機械可読形式で定義し、複数AIの並行開発における基盤インターフェースとして機能する。
 
 ## 関連ドキュメント
@@ -117,13 +127,15 @@ Error: Failed to clone repository: <git_error_message>
 ```
 
 #### 終了コード
+**詳細なエラーコード体系**: [../003-specifications/error-handling.md](../003-specifications/error-handling.md)
+
 | コード | 説明 |
 |--------|------|
 | 0 | 成功 |
 | 1 | 一般的なエラー |
-| 2 | 無効な引数 |
-| 3 | リポジトリが既に存在 |
-| 4 | Git操作エラー |
+| 2 | Git関連エラー |
+| 3 | ネットワークエラー |
+| 4 | ファイルシステムエラー |
 
 ### 2.2 `ghwt new` - Worktree 作成
 
@@ -200,14 +212,15 @@ Error: Failed to create worktree: <git_error_message>
 ```
 
 #### 終了コード
+**詳細なエラーコード体系**: [../003-specifications/error-handling.md](../003-specifications/error-handling.md)
+
 | コード | 説明 |
 |--------|------|
 | 0 | 成功 |
 | 1 | 一般的なエラー |
-| 2 | 無効な引数 |
-| 3 | リポジトリが見つからない |
-| 4 | Worktree が既に存在 |
-| 5 | Git操作エラー |
+| 2 | Git関連エラー |
+| 3 | ネットワークエラー |
+| 4 | ファイルシステムエラー |
 
 ---
 
@@ -330,17 +343,13 @@ ghwt new myapp feature-test --json | jq '.worktree.path'
 
 ## 5. エラーハンドリング
 
-### 5.1 エラーカテゴリ
+### 5.1 エラー処理方針
 
-| カテゴリ | 終了コード範囲 | 説明 |
-|----------|---------------|------|
-| 成功 | 0 | 正常終了 |
-| 一般エラー | 1 | 予期しないエラー |
-| 引数エラー | 2 | 無効な引数・オプション |
-| リソースエラー | 3-5 | ファイル・ディレクトリ関連 |
-| Git エラー | 4-5 | Git 操作関連 |
+GHWT は統一されたエラーハンドリング戦略を採用します。
 
-### 5.2 エラーメッセージ形式
+**完全なエラー仕様**: [../003-specifications/error-handling.md](../003-specifications/error-handling.md)
+
+### 5.2 基本エラーフォーマット
 
 ```
 Error: <簡潔な説明>
@@ -348,19 +357,13 @@ Details: <詳細情報>
 Suggestion: <解決方法の提案>
 ```
 
-### 5.3 復旧提案
+### 5.3 主要エラーパターン
 
-特定のエラーに対して、自動復旧コマンドを提案：
-
-```bash
-# リポジトリが既に存在する場合
-Error: Repository already exists
-Suggestion: Use --force to overwrite, or choose a different name
-
-# Worktree が既に存在する場合  
-Error: Worktree already exists
-Suggestion: Use --force to overwrite, or use a different branch name
-```
+| エラータイプ | 対応 | 例 |
+|-------------|------|-----|
+| 引数エラー | ヘルプ表示・修正提案 | `Error: Invalid URL format` |
+| リソースエラー | 状態確認・代替案提示 | `Error: Repository already exists` |
+| Git操作エラー | Git状態診断・修復提案 | `Error: Failed to create worktree` |
 
 ---
 

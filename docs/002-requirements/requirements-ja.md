@@ -1,6 +1,12 @@
 # GHWT 要件定義書  
 Version 1.0 — 2025-06-01
 
+## このドキュメントの役割
+
+- **対象読者**: 開発チーム、プロダクトオーナー、ステークホルダー
+- **目的**: プロジェクトの目的、機能要件、非機能要件、制約条件を定義
+- **含まない内容**: 技術実装の詳細、データ構造、エラーコード体系（これらは仕様書に委譲）
+
 ## 概要
 
 本ドキュメントは GHWT プロジェクトの要件定義書である。
@@ -11,7 +17,7 @@ Version 1.0 — 2025-06-01
 
 - [../001-adr/](../001-adr/) - アーキテクチャ決定記録
 - [../003-specifications/](../003-specifications/) - 詳細仕様書群
-- [../../README.md](../../README.md) - プロジェクト概要
+- [../../README-ja.md](../../README-ja.md) - プロジェクト概要
 
 ## 変更履歴
 
@@ -34,125 +40,204 @@ Version 1.0 — 2025-06-01
 
 ---
 
-## 1. 背景
+## 1. 背景と課題
 
 ### 1.1 現状の課題
 
 現代のソフトウェア開発では、複数のブランチを同時に扱う必要性が急激に増加している。フィーチャー開発、バグ修正、コードレビュー、ホットフィックス対応など、開発者は日常的に複数のコンテキストを切り替えながら作業を行う。
 
-従来の `git checkout` によるブランチ切り替えでは、以下の問題が発生する：
+### 1.2 従来手法の問題点
 
-1. **コンテキストスイッチのコスト**: ブランチ切り替えのたびに依存関係の再インストール（`npm install` など）が必要
-2. **作業状態の喪失**: 未コミットの変更を一時的に退避する必要性
-3. **IDE の混乱**: プロジェクト設定やインデックスの再構築による待機時間
-4. **並行作業の困難**: 複数のブランチで同時にビルドやテストを実行できない
+#### 1.2.1 `git checkout` の問題
 
-### 1.2 Git Worktree の可能性と限界
-
-Git 2.5 で導入された `git worktree` は、これらの問題を解決する強力な機能である。しかし、標準的な使用方法では新たな問題が生じる：
-
-**標準的な worktree 使用例:**
+**典型的なシナリオ:**
 ```bash
-git worktree add ../feature-branch origin/main
-git worktree add ../hotfix-123 origin/main
-git worktree add ../review-pr-456 origin/main
+# 機能開発中に緊急バグ修正が必要になった場合
+git checkout feature-payment     # 支払い機能開発中
+# → 緊急対応要請が発生
+git stash                        # 作業を一時退避
+git checkout main
+git checkout -b hotfix-urgent    # 緊急修正ブランチ
+# → hotfix完了後、元の作業に戻る
+git checkout feature-payment
+git stash pop                    # 作業を復元
+# → 依存関係の再インストールで時間を浪費
+npm install  # またはbundle install, pip install等
 ```
 
-この方法では、リポジトリ周辺に多数のディレクトリが散乱し、以下の問題が発生する：
+**問題点:**
+- **コンテキストスイッチのコスト**: 依存関係の再インストール（npm install、bundle install等）で数分〜数十分の待機時間
+- **作業状態の喪失**: 未コミット変更の一時退避が必要で、作業の中断が頻発
+- **IDE の混乱**: プロジェクト設定の再構築、インデックスの再構築で開発効率が低下
+- **並行作業の困難**: 複数ブランチでの同時ビルド・テスト実行が不可能
 
-### 1.3 具体的な問題例
+#### 1.2.2 標準的な `git worktree` の問題
 
-以下は、3つの異なるリポジトリで worktree を多用した場合の典型的なディレクトリ構造である：
-
+**現在の散乱した構造:**
 ```
 ~/projects/
 ├── myapp/                    # メインリポジトリ
-├── myapp-feature-auth/       # 認証機能ブランチ
-├── myapp-feature-payment/    # 決済機能ブランチ
-├── myapp-hotfix-security/    # セキュリティ修正
-├── myapp-review-pr-123/      # PR レビュー用
-├── myapp-review-pr-124/      # PR レビュー用
-├── myapp-experimental/       # 実験的機能
-├── backend-api/              # バックエンド API リポジトリ
-├── backend-api-v2-migration/ # API v2 移行ブランチ
-├── backend-api-performance/  # パフォーマンス改善
-├── backend-api-hotfix-db/    # DB 関連修正
-├── frontend-ui/              # フロントエンド UI リポジトリ
-├── frontend-ui-redesign/     # UI リデザイン
-├── frontend-ui-mobile/       # モバイル対応
-├── frontend-ui-a11y/         # アクセシビリティ改善
-└── frontend-ui-review-pr-89/ # PR レビュー用
+├── myapp-feature-auth/       # feature/auth ブランチ
+├── myapp-hotfix-123/         # hotfix/123 ブランチ  
+├── myapp-develop/            # develop ブランチ
+└── temp-branch-test/         # 一時的なテスト用
 ```
 
-この状況では以下の深刻な問題が発生する：
+**問題点:**
+- **ディレクトリの散乱**: リポジトリ関連ディレクトリが散らばり、管理が困難
+- **視認性の悪化**: どのディレクトリがどのプロジェクトの何のブランチかが不明
+- **誤操作のリスク**: 似た名前のディレクトリで間違った操作を実行
+- **残骸の蓄積**: 不要になったworktreeが放置され、ディスク容量を圧迫
+- **命名の一貫性不足**: 各開発者が独自の命名規則を使用し、チーム内で混乱
 
-1. **視認性の悪化**: どのディレクトリがどのリポジトリに属するかが不明確
-2. **誤操作のリスク**: 似た名前のディレクトリ間での混乱
-3. **残骸の蓄積**: 削除し忘れた古い worktree が永続的に残存
-4. **IDE の混乱**: プロジェクト検索時に無関係なディレクトリまで対象となる
-5. **パフォーマンス劣化**: ファイル検索やインデックス作成の対象範囲が不必要に拡大
+#### 1.2.3 開発チームでの実際の困りごと
 
-### 1.4 Nick Nisi 式アプローチの採用
-
-この問題を解決するため、Nick Nisi 氏が提唱する「bare repository + 構造化 worktree」アプローチを採用する。
-
-**参考資料:**
-- [How I use git worktrees - Nick Nisi](https://nicknisi.com/posts/git-worktrees/)
-- [Git Workshop - GitHub Repository](https://github.com/nicknisi/git-workshop)
-
-Nick Nisi 式では、以下の構造を採用する：
-
-```
-~/projects/myapp/
-├── .bare/          # bare repository（Git データベース）
-├── .git            # gitfile（.bare への参照）
-└── .wt/            # worktree 専用ディレクトリ
-    ├── main/       # メインブランチ
-    ├── feature-auth/
-    ├── feature-payment/
-    ├── hotfix-security/
-    └── review-pr-123/
+**レビュー作業の場合:**
+```bash
+# レビュー対象のPRが複数ある場合
+git checkout pr-123   # PR #123をレビュー
+# → ビルド・テスト実行（5-10分）
+git checkout pr-456   # 次のPR #456をレビュー  
+# → 再度ビルド・テスト実行（5-10分）
+# → 1つ目のPRに戻って修正確認
+git checkout pr-123
+# → また同じビルド時間が発生...
 ```
 
-この構造により、**1 リポジトリ = 1 ディレクトリ** の原則を維持し、視認性と安全性を大幅に向上させる。
+**複数環境での並行テストの場合:**
+```bash
+# 本来やりたいこと：複数ブランチを同時テスト
+# feature-payment と feature-auth を同時に動作確認したい
+# → 現状では不可能、逐次実行しかできない
+```
 
-### 1.5 自動化の必要性
+### 1.3 解決方針
 
-しかし、Nick Nisi 式を手動で実装するには以下の複雑な手順が必要である：
+#### 1.3.1 As-Is（現状の問題）vs To-Be（GHWTでの解決）
 
-1. `git clone --bare` でリポジトリを取得
-2. `.bare` ディレクトリへの移動と設定
-3. `gitdir: ./.bare` を含む `.git` ファイルの作成
-4. リモート追跡ブランチの設定修正
-5. 各 worktree の作成と管理
+| 観点 | As-Is（現状の問題） | To-Be（GHWTでの解決） |
+|------|--------------------|--------------------|
+| **ブランチ切り替え** | `git checkout` + 依存関係再インストール（5-10分） | 各ブランチが独立環境、即座に切り替え可能 |
+| **並行作業** | 1つのブランチでしか作業できない | 複数ブランチで同時開発・テスト・ビルド |
+| **ディレクトリ管理** | プロジェクト関連ディレクトリが散乱 | 1つのプロジェクトディレクトリに統一 |
+| **セットアップ時間** | 新しいブランチ作業開始まで数分〜数十分 | `ghwt new <branch>` で数秒 |
+| **レビュー効率** | PR毎にcheckout + ビルド待ち | 複数PRを並行でレビュー可能 |
+| **作業状態管理** | stash/unstashで作業状態を頻繁に退避 | 各ブランチで作業状態が独立して保持 |
 
-これらの手順を毎回手動で実行するのは非効率的であり、設定ミスのリスクも高い。GHWT は、この複雑なプロセスを完全に自動化し、開発者が本質的な作業に集中できる環境を提供する。
+#### 1.3.2 To-Be：理想的な開発体験
+
+**最終ゴール：整理されたワークスペース構造**
+```
+# As-Is（散乱した状態）
+~/projects/
+├── myapp/                    # メインリポジトリ
+├── myapp-feature-auth/       # ブランチ毎に散乱
+├── myapp-hotfix-123/         # 管理が困難
+└── temp-branch-test/         # 残骸が蓄積
+
+# To-Be（1つのプロジェクトディレクトリに統一）
+~/ghwt/myapp/                 # プロジェクト専用ディレクトリ
+├── [共有リポジトリデータ]     # 全ブランチで共有
+├── [ブランチ1のワークスペース] # main
+├── [ブランチ2のワークスペース] # feature-auth  
+└── [ブランチ3のワークスペース] # hotfix-123
+
+# 実現される状態
+✅ 1つのプロジェクトに関連する全てが1箇所に集約
+✅ 各ブランチが独立したワークスペースを持つ
+✅ 依存関係・ビルド結果・IDE設定が各ブランチで独立
+✅ 不要なワークスペースの管理・削除が容易
+```
+
+**シンプルなワークフロー:**
+```bash
+# リポジトリ取得（1回のみ）
+ghwt get git@github.com:myorg/myapp.git
+
+# 複数機能を並行開発
+cd "$(ghwt new feature-payment)"    # 支払い機能開発
+cd "$(ghwt new feature-auth)"       # 認証機能開発（並行）  
+cd "$(ghwt new hotfix-urgent)"      # 緊急修正（並行）
+
+# 即座にブランチ間移動、依存関係再インストール不要
+# IDE設定・ビルド結果・テスト結果が各環境で独立
+```
+
+**開発者の体験改善:**
+- ⚡ **即座のコンテキスト切り替え**: ブランチ移動が数秒で完了
+- 🔄 **真の並行作業**: 複数ブランチで同時ビルド・テスト実行
+- 📁 **整理されたワークスペース**: プロジェクト関連ファイルが1箇所に集約
+- 🛡️ **作業状態の保護**: 緊急対応時も既存作業が中断されない
+- 👥 **チーム内の一貫性**: 全メンバーが同一のディレクトリ構造を使用
+
+#### 1.3.3 技術的アプローチ
+
+**Nick Nisi式アーキテクチャの採用:**
+- 「1 Repository = 1 Directory」原則による構造化
+- bare repository + worktree + gitfile による技術基盤
+- **詳細な技術仕様**: [../003-specifications/filesystem-layout.md](../003-specifications/filesystem-layout.md)
+
+**実装方針:**
+- CLI による自動化でユーザーは技術詳細を意識不要
+- ghq互換でスムーズな移行体験
+- **詳細な実装仕様**: [../003-specifications/core-functions.md](../003-specifications/core-functions.md)
 
 ---
 
-## 2. 用語
+## 2. 機能要件 (MVP: Minimum Viable Product)
 
-| 用語 | 定義 |
-|------|------|
-| **bare repository** | `.bare/` に配置する `git clone --bare` の内容 |
-| **worktree** | `.wt/<branch>/` に配置するチェックアウト済みディレクトリ |
-| **gitfile** | `.git` ファイルに `gitdir: ./.bare` だけを書いたポインタ |
-| **GHWT root** | Worktree 体系のルート。`$GHQ_ROOT` が無ければ **`~/ghwt`** を使用（隠しディレクトリにしない理由: GUI ファイラで視認可能に保つため） |
-| **XDG Base Directory** | Unix 系 OS での設定ファイル配置標準。`$XDG_CONFIG_HOME` または `~/.config` を使用 |
+### 2.1 基本コマンド機能
+
+| ID | 機能 | コマンド | 詳細仕様 |
+|----|------|----------|----------|
+| **R1** | リポジトリ取得・変換 | `ghwt get <url>` | bare clone + Nick Nisi式レイアウト化 |
+| **W1** | Worktree 生成 | `ghwt new <branch>` | 完了パスを **stdout 最終行** に出力 |
+
+### 2.2 グローバルオプション
+
+| オプション | 短縮形 | 説明 | 対応コマンド |
+|-----------|--------|------|-------------|
+| `--help` | `-h` | ヘルプ表示 | 全コマンド |
+| `--version` | `-V` | バージョン表示 | 全コマンド |
+| `--verbose` | `-v` | 詳細出力 | 全コマンド |
+| `--quiet` | `-q` | 静寂モード | 全コマンド |
+
+**詳細なコマンド仕様**: [../003-specifications/cli-interface.md](../003-specifications/cli-interface.md)
 
 ---
 
-## 3. アーキテクチャ決定記録 (ADR)
+## 3. 非機能要件
 
-重要なアーキテクチャ決定とその根拠については、別途 **[../001-adr/](../001-adr/)** を参照。
+### 3.1 性能要件
 
-主要な決定項目：
-- [ADR-001](../001-adr/001-bare-repository.md): Bare Repository + Gitfile アーキテクチャの採用
-- [ADR-002](../001-adr/002-cli-scope.md): CLI の責務範囲の限定
-- [ADR-003](../001-adr/003-directory-principle.md): 1 Repository = 1 Directory 原則
-- [ADR-004](../001-adr/004-rust-implementation.md): Rust 実装の選択
-- [ADR-005](../001-adr/005-mit-license.md): MIT ライセンスの採用
-- [ADR-006](../001-adr/006-toml-config.md): TOML 設定ファイルと XDG Base Directory Specification の採用
+| 項目 | 指標 | 測定条件 |
+|------|------|----------|
+| Worktree作成 | ≤ 1 秒 | ローカルブランチ、SSD環境 |
+| リポジトリ取得 | ネットワーク速度に依存 | リモートクローン時 |
+
+### 3.2 配布・インストール要件
+
+| 方法 | 対象OS | 詳細 |
+|------|--------|------|
+| Homebrew Formula | macOS | `brew install ghwt` |
+| Cargo Install | 全対応OS | `cargo install ghwt` |
+| 静的バイナリ | Linux/macOS | GitHub Releases |
+
+### 3.3 信頼性・安全性要件
+
+| 項目 | 仕様 | 詳細 |
+|------|------|------|
+| エラー回復 | 自動/手動 | `git worktree prune` 実行提案 |
+| 権限管理 | 最小権限 | 必要最小限のファイルアクセス |
+
+### 3.4 エラーハンドリング要件
+
+| 項目 | 仕様 | 詳細 |
+|------|------|------|
+| エラーコード体系 | 統一化 | 詳細: [../003-specifications/error-handling.md](../003-specifications/error-handling.md) |
+| エラーメッセージ | 構造化 | メッセージ・詳細・ヒント |
+| 回復戦略 | 段階的 | 自動回復 → ユーザー確認 → 手動対応 |
+| ログ出力 | 詳細モード | `--verbose` フラグで詳細情報 |
 
 ---
 
@@ -167,105 +252,21 @@ Nick Nisi 式では、以下の構造を採用する：
 
 ---
 
-## 5. 機能要件 (MVP: Minimum Viable Product)
+## 5. アーキテクチャ決定記録 (ADR)
 
-### 5.1 基本コマンド機能
+重要なアーキテクチャ決定とその根拠については、別途 **[../001-adr/](../001-adr/)** を参照。
 
-| ID | 機能 | コマンド | 詳細仕様 |
-|----|------|----------|----------|
-| **R1** | リポジトリ取得・変換 | `ghwt get <url>` | bare clone + Nick Nisi式レイアウト化<br>オプション: `--branch`, `--depth`, `--force`, `--no-checkout` |
-| **W1** | Worktree 生成 | `ghwt new <branch>` | 完了パスを **stdout 最終行** に出力<br>オプション: `--force` |
-
-### 5.2 グローバルオプション
-
-| オプション | 短縮形 | 説明 | 対応コマンド |
-|-----------|--------|------|-------------|
-| `--help` | `-h` | ヘルプ表示 | 全コマンド |
-| `--version` | `-V` | バージョン表示 | 全コマンド |
-| `--verbose` | `-v` | 詳細出力 | 全コマンド |
-| `--quiet` | `-q` | 静寂モード | 全コマンド |
-
-### 5.3 出力形式仕様
-
-#### 5.3.1 標準出力形式
-- **成功メッセージ**: 人間が読みやすい形式
-- **パス出力**: `ghwt new`は最終行に作成パスを出力（スクリプト連携用）
-
-#### 5.3.2 エラー出力形式
-- **標準エラー**: エラーメッセージは stderr に出力
-- **詳細情報**: `--verbose` フラグで詳細なエラー情報
-- **ヒント**: 解決方法の提案を含む
+主要な決定項目：
+- [ADR-001](../001-adr/001-bare-repository.md): Bare Repository + Gitfile アーキテクチャの採用
+- [ADR-002](../001-adr/002-cli-scope.md): CLI の責務範囲の限定
+- [ADR-003](../001-adr/003-directory-principle.md): 1 Repository = 1 Directory 原則
+- [ADR-004](../001-adr/004-rust-implementation.md): Rust 実装の選択
+- [ADR-005](../001-adr/005-mit-license.md): MIT ライセンスの採用
+- [ADR-006](../001-adr/006-toml-config.md): TOML 設定ファイルと XDG Base Directory Specification の採用
 
 ---
 
-## 6. 非機能要件
-
-### 6.1 性能要件
-
-| 項目 | 指標 | 測定条件 |
-|------|------|----------|
-| Worktree作成 | ≤ 1 秒 | ローカルブランチ、SSD環境 |
-| リポジトリ取得 | ネットワーク速度に依存 | リモートクローン時 |
-
-### 6.2 配布・インストール要件
-
-| 方法 | 対象OS | 詳細 |
-|------|--------|------|
-| Homebrew Formula | macOS | `brew install ghwt` |
-| Cargo Install | 全対応OS | `cargo install ghwt` |
-| 静的バイナリ | Linux/macOS | GitHub Releases |
-
-### 6.3 信頼性・安全性要件
-
-| 項目 | 仕様 | 詳細 |
-|------|------|------|
-| エラー回復 | 自動/手動 | `git worktree prune` 実行提案 |
-| 権限管理 | 最小権限 | 必要最小限のファイルアクセス |
-
-### 6.4 エラーハンドリング要件
-
-| 項目 | 仕様 | 詳細 |
-|------|------|------|
-| エラーコード体系 | 16種類 | 0-15の統一コード |
-| エラーメッセージ | 構造化 | メッセージ・詳細・ヒント |
-| 回復戦略 | 段階的 | 自動回復 → ユーザー確認 → 手動対応 |
-| ログ出力 | 詳細モード | `--verbose` フラグで詳細情報 |
-
----
-
-## 7. 技術仕様
-
-### 7.1 データ構造仕様
-
-#### 7.1.1 基本データ構造
-- **Repository**: リポジトリ情報管理（name, url, path, created_at, default_branch）
-- **Worktree**: Worktree情報管理（repository, branch, path, created_at, tracking_branch, is_detached）
-
-#### 7.1.2 エラー処理構造
-- **GhwtError**: 統合エラー型（全エラーの統一インターフェース）
-- **GitError**: Git関連エラー（リポジトリ・Worktree操作エラー）
-- **ValidationError**: バリデーションエラー（入力値検証エラー）
-- **NetworkError**: ネットワークエラー（リモートアクセスエラー）
-- **PermissionError**: 権限エラー（ファイルアクセス権限エラー）
-
-### 7.2 エラーコード体系
-
-| コード | 名前 | 説明 | 典型的な原因 |
-|--------|------|------|-------------|
-| 0 | Success | 正常終了 | - |
-| 1 | InvalidArgs | 引数・オプションエラー | 不正なコマンドライン引数 |
-| 2 | GitError | Git関連エラー | リポジトリ不存在、Git操作失敗 |
-| 3 | NetworkError | ネットワークエラー | リモートアクセス失敗 |
-| 4 | FileSystemError | ファイルシステムエラー | ファイル読み書き失敗 |
-| 5 | WorktreeError | Worktreeエラー | Worktree作成・削除失敗 |
-| 6 | PermissionError | 権限エラー | アクセス権限不足 |
-| 7 | DependencyError | 依存関係エラー | 必要ツール不存在 |
-| 8 | InternalError | 内部エラー | プログラムバグ |
-| 9 | UserCancelled | ユーザー操作キャンセル | Ctrl+C、確認プロンプトでNo |
-
----
-
-## 8. 操作例
+## 6. 基本操作例
 
 ```bash
 # bare repo 取得
@@ -282,35 +283,23 @@ cd ~/ghwt/alpha
 cd "$(ghwt new hotfix-123)"
 ```
 
----
-
-## 9. ディレクトリレイアウト例
-
-```
-~/ghwt/alpha/
-├── .bare/          # bare repository
-├── .git            # gitfile → ./.bare
-└── .wt/
-    ├── main/
-    ├── featureA/
-    └── featureB/
-```
+**詳細な技術仕様**: [../003-specifications/core-functions.md](../003-specifications/core-functions.md)
 
 ---
 
-## 10. 完了条件
+## 7. 完了条件
 
-### 10.1 機能完了条件
+### 7.1 機能完了条件
 - [ ] 基本コマンド（get, new）の実装
 - [ ] エラーハンドリングの実装
 - [ ] ヘルプ・バージョン表示の実装
 
-### 10.2 品質完了条件
+### 7.2 品質完了条件
 - [ ] 基本機能のテストカバレッジ ≥ 90%
 - [ ] 性能要件の達成（new ≤ 1秒）
 - [ ] エラー回復機能の実装
 
-### 10.3 配布完了条件
+### 7.3 配布完了条件
 - [ ] Homebrew Formula の作成・公開
 - [ ] cargo install 対応
 - [ ] 静的バイナリのGitHub Releases公開
@@ -318,7 +307,7 @@ cd "$(ghwt new hotfix-123)"
 
 ---
 
-## 11. ライセンス
+## 8. ライセンス
 
 本プロジェクトは MIT License で公開する。
 再配布時はライセンス文と著作権表示の保持が必要。 
