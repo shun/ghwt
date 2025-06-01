@@ -174,30 +174,9 @@ Nick Nisi 式では、以下の構造を採用する：
 | ID | 機能 | コマンド | 詳細仕様 |
 |----|------|----------|----------|
 | **R1** | リポジトリ取得・変換 | `ghwt get <url>` | bare clone + Nick Nisi式レイアウト化<br>オプション: `--branch`, `--depth`, `--force`, `--no-checkout` |
-| **R2** | 既存リポジトリ変換 | `ghwt migrate <path>` | 既存リポジトリをGHWT形式に変換 |
-| **W1** | Worktree 生成 | `ghwt new [<repo>] <branch>` | 完了パスを **stdout 最終行** に出力<br>オプション: `--track`, `--force`, `--detach` |
-| **L1** | Worktree 一覧 | `ghwt ls` | repo/branch/path/age を列挙<br>オプション: `--all`, `--repo`, `--format`, `--sort`, `--json` |
-| **D1** | Worktree 削除 | `ghwt rm <repo> <branch>` | 指定Worktreeの安全な削除<br>オプション: `--force`, `--prune` |
-| **D2** | Worktree プルーン | `ghwt prune` | 古いWorktreeのクリーンアップ<br>オプション: `--expire`, `--dry-run`, `--force` |
+| **W1** | Worktree 生成 | `ghwt new <branch>` | 完了パスを **stdout 最終行** に出力<br>オプション: `--force` |
 
-### 5.2 補助コマンド機能
-
-| ID | 機能 | コマンド | 詳細仕様 |
-|----|------|----------|----------|
-| **C1** | Worktree作成+移動 | `ghwt-newcd [<repo>] <branch>` | シェルスクリプトで提供、作成後に自動cd |
-| **C2** | 対話的選択 | `ghwt fzf` | fzfによるWorktree選択インターフェース |
-
-### 5.3 設定管理機能
-
-| ID | 機能 | コマンド | 詳細仕様 |
-|----|------|----------|----------|
-| **S1** | 設定値設定 | `ghwt config set <key> <value>` | TOML設定ファイルの値を設定 |
-| **S2** | 設定値取得 | `ghwt config get <key>` | 指定キーの現在値を表示 |
-| **S3** | 設定一覧表示 | `ghwt config list` | 全設定値を表示、`--json`オプション対応 |
-| **S4** | 設定値削除 | `ghwt config unset <key>` | 設定値をデフォルトに戻す |
-| **S5** | 設定検証 | `ghwt config validate` | 設定ファイルの妥当性検証 |
-
-### 5.4 グローバルオプション
+### 5.2 グローバルオプション
 
 | オプション | 短縮形 | 説明 | 対応コマンド |
 |-----------|--------|------|-------------|
@@ -205,22 +184,14 @@ Nick Nisi 式では、以下の構造を採用する：
 | `--version` | `-V` | バージョン表示 | 全コマンド |
 | `--verbose` | `-v` | 詳細出力 | 全コマンド |
 | `--quiet` | `-q` | 静寂モード | 全コマンド |
-| `--json` | - | JSON形式出力 | `ls`, `config list` |
-| `--config` | `-c` | 設定ファイルパス指定 | 全コマンド |
 
-### 5.5 出力形式仕様
+### 5.3 出力形式仕様
 
-#### 5.5.1 標準出力形式
+#### 5.3.1 標準出力形式
 - **成功メッセージ**: 人間が読みやすい形式
 - **パス出力**: `ghwt new`は最終行に作成パスを出力（スクリプト連携用）
-- **テーブル形式**: `ghwt ls`のデフォルト出力
 
-#### 5.5.2 JSON出力形式
-- **構造化データ**: 機械処理用の完全な情報
-- **メタデータ**: バージョン、生成日時を含む
-- **一貫性**: 全コマンドで統一されたスキーマ
-
-#### 5.5.3 エラー出力形式
+#### 5.3.2 エラー出力形式
 - **標準エラー**: エラーメッセージは stderr に出力
 - **詳細情報**: `--verbose` フラグで詳細なエラー情報
 - **ヒント**: 解決方法の提案を含む
@@ -233,10 +204,8 @@ Nick Nisi 式では、以下の構造を採用する：
 
 | 項目 | 指標 | 測定条件 |
 |------|------|----------|
-| Worktree一覧表示 | ≥ 100 worktree/秒 | ローカルファイルシステム |
 | Worktree作成 | ≤ 1 秒 | ローカルブランチ、SSD環境 |
 | リポジトリ取得 | ネットワーク速度に依存 | リモートクローン時 |
-| 設定ファイル読み込み | ≤ 10ms | 標準的な設定ファイル |
 
 ### 6.2 配布・インストール要件
 
@@ -245,35 +214,15 @@ Nick Nisi 式では、以下の構造を採用する：
 | Homebrew Formula | macOS | `brew install ghwt` |
 | Cargo Install | 全対応OS | `cargo install ghwt` |
 | 静的バイナリ | Linux/macOS | GitHub Releases |
-| パッケージマネージャ | Linux | apt/yum/pacman対応（将来） |
 
-### 6.3 設定管理要件
-
-| 項目 | 仕様 | 詳細 |
-|------|------|------|
-| 設定ファイル形式 | TOML | 人間が編集可能 |
-| 配置場所 | XDG Base Directory | `~/.config/ghwt/config.toml` |
-| 環境変数対応 | あり | `GHWT_ROOT`, `GHWT_CONFIG` |
-| 設定の優先順位 | 環境変数 > 設定ファイル > デフォルト | - |
-
-### 6.4 信頼性・安全性要件
+### 6.3 信頼性・安全性要件
 
 | 項目 | 仕様 | 詳細 |
 |------|------|------|
 | エラー回復 | 自動/手動 | `git worktree prune` 実行提案 |
-| データ整合性 | 検証機能 | 設定ファイル・リポジトリ状態の検証 |
 | 権限管理 | 最小権限 | 必要最小限のファイルアクセス |
-| バックアップ | 設定保護 | 設定変更時の自動バックアップ |
 
-### 6.5 国際化要件
-
-| 項目 | 仕様 | 詳細 |
-|------|------|------|
-| 対応言語 | 日本語・英語 | エラーメッセージ・ヘルプ |
-| ロケール検出 | 自動 | `GHWT_LANG`, `LANG`, `LC_ALL` |
-| 文字エンコーディング | UTF-8 | 全テキスト処理 |
-
-### 6.6 エラーハンドリング要件
+### 6.4 エラーハンドリング要件
 
 | 項目 | 仕様 | 詳細 |
 |------|------|------|
@@ -289,31 +238,17 @@ Nick Nisi 式では、以下の構造を採用する：
 ### 7.1 データ構造仕様
 
 #### 7.1.1 基本データ構造
-- **Repository**: リポジトリ情報管理（name, url, path, created_at, last_accessed, default_branch, remote_name）
-- **Worktree**: Worktree情報管理（repository, branch, path, created_at, last_accessed, tracking_branch, is_detached, commit_hash）
+- **Repository**: リポジトリ情報管理（name, url, path, created_at, default_branch）
+- **Worktree**: Worktree情報管理（repository, branch, path, created_at, tracking_branch, is_detached）
 
-#### 7.1.2 設定管理構造
-- **Config**: アプリケーション設定統合管理
-- **CoreConfig**: コア機能設定（root）
-
-#### 7.1.3 エラー処理構造
+#### 7.1.2 エラー処理構造
 - **GhwtError**: 統合エラー型（全エラーの統一インターフェース）
 - **GitError**: Git関連エラー（リポジトリ・Worktree操作エラー）
-- **ConfigError**: 設定関連エラー（設定ファイル読み書きエラー）
 - **ValidationError**: バリデーションエラー（入力値検証エラー）
-- **SerializationError**: シリアライゼーションエラー（JSON/TOML処理エラー）
 - **NetworkError**: ネットワークエラー（リモートアクセスエラー）
 - **PermissionError**: 権限エラー（ファイルアクセス権限エラー）
 
-### 7.2 設定ファイルスキーマ
-
-```toml
-# ~/.config/ghwt/config.toml
-[core]
-root = "~/ghwt"                    # GHWT ルートディレクトリ
-```
-
-### 7.3 エラーコード体系
+### 7.2 エラーコード体系
 
 | コード | 名前 | 説明 | 典型的な原因 |
 |--------|------|------|-------------|
@@ -322,17 +257,11 @@ root = "~/ghwt"                    # GHWT ルートディレクトリ
 | 2 | GitError | Git関連エラー | リポジトリ不存在、Git操作失敗 |
 | 3 | NetworkError | ネットワークエラー | リモートアクセス失敗 |
 | 4 | FileSystemError | ファイルシステムエラー | ファイル読み書き失敗 |
-| 5 | ConfigError | 設定エラー | 設定ファイル不正 |
-| 6 | WorktreeError | Worktreeエラー | Worktree作成・削除失敗 |
-| 7 | PermissionError | 権限エラー | アクセス権限不足 |
-| 8 | DependencyError | 依存関係エラー | 必要ツール不存在 |
-| 9 | InternalError | 内部エラー | プログラムバグ |
-| 10 | UserCancelled | ユーザー操作キャンセル | Ctrl+C、確認プロンプトでNo |
-| 11 | ResourceError | リソース不足エラー | ディスク容量不足 |
-| 12 | VersionError | バージョン互換性エラー | Git版本不適合 |
-| 13 | AuthenticationError | 認証エラー | SSH鍵認証失敗 |
-| 14 | TimeoutError | タイムアウトエラー | ネットワーク操作タイムアウト |
-| 15 | IntegrityError | データ整合性エラー | 破損したリポジトリ |
+| 5 | WorktreeError | Worktreeエラー | Worktree作成・削除失敗 |
+| 6 | PermissionError | 権限エラー | アクセス権限不足 |
+| 7 | DependencyError | 依存関係エラー | 必要ツール不存在 |
+| 8 | InternalError | 内部エラー | プログラムバグ |
+| 9 | UserCancelled | ユーザー操作キャンセル | Ctrl+C、確認プロンプトでNo |
 
 ---
 
@@ -342,35 +271,15 @@ root = "~/ghwt"                    # GHWT ルートディレクトリ
 # bare repo 取得
 ghwt get git@github.com:myorg/alpha.git
 
+# リポジトリディレクトリに移動
+cd ~/ghwt/alpha
+
 # ブランチ用 worktree 作成 → すぐ移動
-cd "$(ghwt new alpha featureA)"      # または ghwt-newcd …
+cd "$(ghwt new featureA)"
 
-# 一覧表示（テーブル形式）
-ghwt ls
-
-# 一覧表示（JSON形式）
-ghwt ls --json
-
-# 特定リポジトリのWorktree一覧
-ghwt ls --repo alpha
-
-# 14日以上放置された worktree をクリーン
-ghwt prune --expire 14d
-
-# 設定管理
-ghwt config set core.root ~/workspace
-ghwt config get core.root
-ghwt config list --json
-ghwt config validate
-
-# 対話的選択
-ghwt fzf
-
-# Worktree削除
-ghwt rm alpha featureA
-
-# 既存リポジトリの変換
-ghwt migrate ~/projects/existing-repo
+# 別のブランチでも並行作業
+cd ~/ghwt/alpha
+cd "$(ghwt new hotfix-123)"
 ```
 
 ---
@@ -385,9 +294,6 @@ ghwt migrate ~/projects/existing-repo
     ├── main/
     ├── featureA/
     └── featureB/
-
-~/.config/ghwt/
-└── config.toml     # 設定ファイル
 ```
 
 ---
@@ -395,23 +301,20 @@ ghwt migrate ~/projects/existing-repo
 ## 10. 完了条件
 
 ### 10.1 機能完了条件
-- [ ] 全基本コマンド（get, new, ls, rm, prune）の実装
-- [ ] 全補助コマンド（ghwt-newcd, ghwt fzf）の実装
-- [ ] 完全な設定管理機能（set, get, list, unset, validate）
-- [ ] JSON出力対応（ls, config list）
-- [ ] 国際化対応（日本語・英語）
+- [ ] 基本コマンド（get, new）の実装
+- [ ] エラーハンドリングの実装
+- [ ] ヘルプ・バージョン表示の実装
 
 ### 10.2 品質完了条件
-- [ ] 全エラーケースのテストカバレッジ ≥ 90%
-- [ ] 性能要件の達成（ls ≥ 100 worktree/秒、new ≤ 1秒）
-- [ ] 設定ファイルバリデーションの完全実装
+- [ ] 基本機能のテストカバレッジ ≥ 90%
+- [ ] 性能要件の達成（new ≤ 1秒）
 - [ ] エラー回復機能の実装
 
 ### 10.3 配布完了条件
 - [ ] Homebrew Formula の作成・公開
 - [ ] cargo install 対応
 - [ ] 静的バイナリのGitHub Releases公開
-- [ ] ドキュメントの完全性確認
+- [ ] 基本ドキュメントの完全性確認
 
 ---
 

@@ -64,6 +64,19 @@ GitHub Issue実行ルール（`.aicoding/rules/002-execute-github-issue.yaml`）
 
 ## 🛠️ 技術仕様
 
+### GitHub CLI Issue取得ルール
+```bash
+# ✅ 正しい方法（pagerを無効化）
+gh issue view {issue_number} --json title,body,number | cat
+gh issue view {issue_number} | cat
+
+# ❌ 間違った方法（pagerで中断される）
+gh issue view {issue_number}
+gh issue view {issue_number} --json title,body,number
+```
+
+**重要**: GitHub CLIコマンドは必ず `| cat` を付けてpagerを無効化すること
+
 ### ブランチ命名規則
 ```
 feature/issue-{issue_number}-{sanitized_title}
