@@ -10,7 +10,7 @@ Version 1.0 — 2025-06-01
 
 ## 関連ドキュメント
 
-- [test-strategy.md](test-strategy.md) - テスト戦略
+- [./test-strategy.md](./test-strategy.md) - テスト戦略
 - [../003-specifications/cli-interface.md](../003-specifications/cli-interface.md) - CLI インターフェース仕様
 - [../003-specifications/filesystem-layout.md](../003-specifications/filesystem-layout.md) - ファイルシステムレイアウト仕様
 - [../002-requirements/requirements-ja.md](../002-requirements/requirements-ja.md) - 基本要件
@@ -239,7 +239,8 @@ pub enum GhwtError {
 #### 4.2.1 最小権限の原則
 
 **ファイル権限:**
-- 所有者のみアクセス可能（700/600）
+- ディレクトリ: 所有者のみアクセス可能（700）
+- ファイル: 所有者のみ読み書き可能（600）
 - 不要な権限の付与を避ける
 - プラットフォーム固有の権限設定
 
