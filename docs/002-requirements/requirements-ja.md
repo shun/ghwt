@@ -174,7 +174,7 @@ Nick Nisi 式では、以下の構造を採用する：
 | ID | 機能 | コマンド | 詳細仕様 |
 |----|------|----------|----------|
 | **R1** | リポジトリ取得・変換 | `ghwt get <url>` | bare clone + Nick Nisi式レイアウト化<br>オプション: `--branch`, `--depth`, `--force`, `--no-checkout` |
-| **W1** | Worktree 生成 | `ghwt new <branch>` | 完了パスを **stdout 最終行** に出力<br>オプション: `--track`, `--force` |
+| **W1** | Worktree 生成 | `ghwt new <branch>` | 完了パスを **stdout 最終行** に出力<br>オプション: `--force` |
 
 ### 5.2 グローバルオプション
 

@@ -240,7 +240,6 @@ Hint: Navigate to a GHWT repository directory first:
 
 | オプション | 短縮形 | 型 | デフォルト | 説明 |
 |-----------|--------|----|---------|----|
-| `--track` | `-t` | string | - | 追跡するリモートブランチ |
 | `--force` | `-f` | boolean | false | 既存 worktree の上書き |
 
 ---
