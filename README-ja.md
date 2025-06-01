@@ -93,171 +93,24 @@ cargo install ghwt
 ```bash
 # 新しいリポジトリを bare clone + レイアウト化
 ghwt get git@github.com:myorg/myapp.git
-
-# 既存のリポジトリを変換
-ghwt migrate /path/to/existing/repo
 ```
 
 ### 2. Worktree の作成と移動
 
 ```bash
+# リポジトリディレクトリに移動
+cd ~/ghwt/myapp
+
 # 新しいブランチ用 worktree を作成してすぐ移動
-cd "$(ghwt new myapp feature-auth)"
-
-# または便利なヘルパーコマンドを使用
-ghwt-newcd myapp feature-auth
+cd "$(ghwt new feature-auth)"
 ```
 
-### 3. Worktree の管理
-
-```bash
-# 全ての worktree を一覧表示
-ghwt ls
-
-# JSON形式で出力
-ghwt ls --json
-
-# 特定のリポジトリのみ表示
-ghwt ls myapp
-
-# 古い worktree をクリーンアップ（14日以上放置）
-ghwt prune --expire 14d
-```
-
-## 📋 主要コマンド
+## 📋 主要コマンド（MVP）
 
 | コマンド | 説明 |
 |----------|------|
 | `ghwt get <URL>` | リポジトリを bare clone してレイアウト化 |
-| `ghwt migrate <path>` | 既存リポジトリを GHWT レイアウトに変換 |
-| `ghwt new [<repo>] <branch>` | 新しい worktree を作成 |
-| `ghwt ls [--json] [--all]` | worktree 一覧を表示 |
-| `ghwt rm <repo> <branch>` | 指定した worktree を削除 |
-| `ghwt prune [--expire <days>]` | 古い worktree をクリーンアップ |
-| `ghwt config <key> [<value>]` | 設定の取得・設定 |
-
-## ⚙️ 設定
-
-GHWT は XDG Base Directory Specification に準拠した設定管理を提供します。
-
-### 設定ファイルの場所
-
-```
-~/.config/ghwt/config.toml
-```
-
-### 主要な設定項目
-
-```bash
-# ルートディレクトリの設定
-ghwt config set core.root ~/my-worktrees
-
-# 自動プルーンの有効化
-ghwt config set core.auto-prune true
-
-# デフォルトの有効期限設定
-ghwt config set prune.default-expire 30d
-
-# 設定の確認
-ghwt config list
-```
-
-### 設定例（config.toml）
-
-```toml
-[core]
-root = "~/ghwt"
-auto-prune = true
-
-[prune]
-default-expire = "30d"
-confirm-before-delete = true
-
-[ui]
-color = "auto"
-```
-
-## 🔧 便利なヘルパーコマンド
-
-GHWT には以下のヘルパーコマンドが同梱されています：
-
-### `ghwt-newcd`
-
-新しい worktree を作成して即座に移動：
-
-```bash
-ghwt-newcd myapp feature-auth
-# 上記は以下と同等
-cd "$(ghwt new myapp feature-auth)"
-```
-
-### `ghwt fzf`
-
-fzf を使用したインタラクティブな worktree 選択：
-
-```bash
-# fzf で worktree を選択して移動
-cd "$(ghwt fzf)"
-```
-
-## 🔄 ghq との連携
-
-GHWT は ghq ユーザーと非 ghq ユーザーの両方に対応しています。
-
-### ghq ユーザーの場合
-
-```bash
-# $GHQ_ROOT が設定されている場合、自動的に使用されます
-export GHQ_ROOT=~/src
-ghwt get git@github.com:myorg/myapp.git
-# → ~/src/github.com/myorg/myapp/ に配置
-```
-
-### 非 ghq ユーザーの場合
-
-```bash
-# デフォルトで ~/ghwt を使用
-ghwt get git@github.com:myorg/myapp.git
-# → ~/ghwt/myapp/ に配置
-```
-
-## 🎯 使用例
-
-### 日常的なワークフロー
-
-```bash
-# 1. 新機能の開発開始
-ghwt-newcd myapp feature/user-authentication
-# 作業ディレクトリ: ~/ghwt/myapp/.wt/feature-user-authentication/
-
-# 2. 緊急バグ修正（別ターミナル）
-ghwt-newcd myapp hotfix/security-patch
-# 作業ディレクトリ: ~/ghwt/myapp/.wt/hotfix-security-patch/
-
-# 3. PR レビュー（さらに別ターミナル）
-ghwt-newcd myapp review/pr-123
-# 作業ディレクトリ: ~/ghwt/myapp/.wt/review-pr-123/
-
-# 4. 作業完了後のクリーンアップ
-ghwt prune --expire 7d
-```
-
-### チーム開発での活用
-
-```bash
-# 複数のリポジトリを管理
-ghwt get git@github.com:myorg/frontend.git
-ghwt get git@github.com:myorg/backend.git
-ghwt get git@github.com:myorg/mobile.git
-
-# 関連する機能を並行開発
-ghwt-newcd frontend feature/new-ui
-ghwt-newcd backend feature/new-api
-ghwt-newcd mobile feature/new-feature
-
-# 全体の状況を確認
-ghwt ls --all
-```
+| `ghwt new <branch>` | 新しい worktree を作成 |
 
 ## 🚨 トラブルシューティング
 
@@ -268,29 +121,49 @@ ghwt ls --all
 ```bash
 # Git の状態を確認
 git worktree prune
-
-# または GHWT の自動修復機能を使用
-ghwt prune --fix
 ```
 
-#### Q: 古い worktree が残っている
+#### Q: リポジトリが見つからない
 
 ```bash
-# 期限切れの worktree を確認
-ghwt ls --expired
+# GHWT管理下のディレクトリにいるか確認
+pwd
+ls -la  # .bare ディレクトリがあるか確認
 
-# 手動でクリーンアップ
-ghwt prune --expire 0d --force
+# リポジトリディレクトリに移動してから実行
+cd ~/ghwt/myrepo
+ghwt new feature-branch
 ```
 
-#### Q: 設定がうまく反映されない
+## 🎯 使用例
+
+### 日常的なワークフロー
 
 ```bash
-# 設定ファイルの場所を確認
-ghwt config --show-path
+# 1. 新機能の開発開始
+ghwt get git@github.com:myorg/myapp.git
+cd ~/ghwt/myapp
+cd "$(ghwt new feature/user-authentication)"
 
-# 設定をリセット
-ghwt config reset
+# 2. 緊急バグ修正（別ターミナル）
+cd ~/ghwt/myapp
+cd "$(ghwt new hotfix/security-patch)"
+
+# 3. PR レビュー（さらに別ターミナル）
+cd ~/ghwt/myapp
+cd "$(ghwt new review/pr-123)"
+```
+
+### チーム開発での活用
+
+```bash
+# 複数のリポジトリを管理
+ghwt get git@github.com:myorg/frontend.git
+ghwt get git@github.com:myorg/backend.git
+
+# 関連する機能を並行開発
+cd ~/ghwt/frontend && cd "$(ghwt new feature/new-ui)"
+cd ~/ghwt/backend && cd "$(ghwt new feature/new-api)"
 ```
 
 ## 🤝 コントリビューション
@@ -314,7 +187,8 @@ ghwt config reset
 
 ## 📚 関連リンク
 
-- [要件定義書](docs/001-requirements/002-requirements-ja.md)
-- [アーキテクチャ決定記録](docs/001-requirements/001-adr.md)
+- [要件定義書](docs/002-requirements/requirements-ja.md)
+- [アーキテクチャ決定記録](docs/001-adr/)
+- [仕様書](docs/003-specifications/)
 - [Git Worktree 公式ドキュメント](https://git-scm.com/docs/git-worktree)
 - [Nick Nisi の Git Worktree 記事](https://nicknisi.com/posts/git-worktrees/)
