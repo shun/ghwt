@@ -1,0 +1,176 @@
+# .aicoding/rules/directory_conventions.yaml
+# 'src' ディレクトリの構造化に関するルール。様々なプロジェクトタイプに対応可能です。
+# これらのルールは、AIと開発者が一貫性のある理解しやすいコードベースを維持するのに役立ちます。
+
+conventions:
+  - scope: "src_directory"
+    description: "主要なアプリケーションソースコードディレクトリのガイドライン。"
+    target_path: "src/" # これらのルールが適用されるディレクトリ
+    purpose: |
+      'src/' ディレクトリには、アプリケーションまたはサービスの中核となるロジックと実装が含まれます。
+      通常、テスト、ビルド成果物、トップレベルのプロジェクト設定は除外されます。
+      'src/' の内部構造は、特に複雑なプロジェクトやモノレポにおいて、明確さと保守性を高めるために、
+      機能、モジュール、またはアーキテクチャレイヤーによって整理されるべきです。
+
+    # src/ 内の一般的なサブディレクトリパターン
+    # これらは一般的なパターンですが、特定のプロジェクトのニーズによって他のものが導入されることもあります。
+    sub_directory_patterns:
+      - pattern: "src/api/"
+        purpose: "APIエンドポイント定義、コントローラ、またはリクエストハンドラ（バックエンドサービスで一般的）。"
+        example_files: ["users_api.py", "products_route.ts"]
+        notes: "APIバージョンによってさらに構造化される場合があります（例: src/api/v1/）。"
+
+      - pattern: "src/components/"
+        purpose: "再利用可能なUIコンポーネント（フロントエンドアプリケーションで一般的）。"
+        example_files: ["Button.tsx", "UserProfileCard.vue", "Header.svelte"]
+        notes: "多くの場合、機能またはコンポーネントのタイプによって整理されます。"
+
+      - pattern: "src/core/" # または src/domain/, src/business_logic/
+        purpose: "アプリケーションの機能に不可欠なコアビジネスロジック、ドメインモデル、およびサービス。"
+        example_files: ["order_processing_service.py", "user_domain_model.java"]
+        notes: "特定のフレームワークや配信メカニズム（APIやUIなど）から独立しているべきです。"
+
+      - pattern: "src/lib/" # または src/shared/
+        purpose: "'src' 内のアプリケーションの異なる部分で使用される共有ライブラリ、ユーティリティ、またはモジュール。"
+        example_files: ["string_utils.ts", "date_formatter.py"]
+        notes: "真にグローバルなユーティリティについては、モノレポ内のトップレベルの 'packages/' または 'libs/' を検討してください。"
+
+      - pattern: "src/pages/" # または src/views/, src/screens/
+        purpose: "フロントエンドアプリケーションのページレベルのコンポーネントまたはビュー。通常、より小さなコンポーネントを組み合わせて構成されます。"
+        example_files: ["HomePage.tsx", "ProductDetailsPage.vue"]
+
+      - pattern: "src/services/"
+        purpose: |
+          アプリケーションサービス、ビジネスサービス、または外部サービス用のクライアント。
+          フロントエンドでは、これはAPIクライアントサービスかもしれません。
+          バックエンドでは、これはビジネスロジックを調整するサービスかもしれません。
+        example_files: ["user_service.py", "payment_gateway_client.ts", "notification_service.java"]
+
+      - pattern: "src/store/" # または src/state/
+        purpose: "フロントエンドアプリケーションの状態管理ロジック（例: Redux, Vuex, Zustand, Pinia）。"
+        example_files: ["user_store.ts", "cart_reducer.js"]
+
+      - pattern: "src/utils/"
+        purpose: "'src' コードベースに固有の汎用ユーティリティ関数とヘルパー。"
+        example_files: ["validators.py", "formatters.ts", "constants.js"]
+        notes: "ユーティリティが（モノレポ内で）複数の 'src' ディレクトリ間で広く共有されるようになった場合は、共有ライブラリへの移動を検討してください。"
+
+      - pattern: "src/[feature_name]/"
+        purpose: "特定の機能のためのモジュールで、関連するすべてのコード（コンポーネント、サービスなど）を含みます。モジュール性を促進します。"
+        example_files: ["src/authentication/auth_service.py", "src/authentication/components/LoginForm.tsx"]
+        notes: "これは「機能ファースト」または「モジュールベース」の構造化アプローチです。"
+
+    # 'src/' のプロジェクトタイプ別具体例
+    project_type_examples:
+      - type: "シンプルなアプリケーション / マイクロサービス（バックエンド）"
+        description: "単一の、焦点を絞ったバックエンドサービスまたはアプリケーション。"
+        structure_example: |
+          src/
+          ├── api/                  # APIエンドポイント (例: Flask, FastAPI)
+          │   └── health_check.py
+          │   └── item_routes.py
+          ├── core/                 # コアビジネスロジックとサービス
+          │   └── item_service.py
+          ├── models/               # データモデル (例: Pydantic, SQLAlchemy)
+          │   └── item_model.py
+          ├── repositories/         # データアクセスレイヤー
+          │   └── item_repository.py
+          ├── utils/                # ユーティリティ関数
+          │   └── string_utils.py
+          └── main.py               # アプリケーションエントリーポイント
+
+      - type: "シンプルなアプリケーション（フロントエンド）"
+        description: "単一の、焦点を絞ったフロントエンドアプリケーション。"
+        structure_example: |
+          src/
+          ├── assets/               # 画像やフォントなどの静的アセット
+          ├── components/           # 再利用可能なUIコンポーネント
+          │   └── common/
+          │   └── feature_x/
+          ├── pages/                # ページレベルのコンポーネント
+          │   └── HomePage.tsx
+          │   └── AboutPage.tsx
+          ├── services/             # APIクライアントサービス
+          │   └── apiClient.ts
+          ├── store/                # 状態管理
+          │   └── userStore.ts
+          ├── styles/               # グローバルスタイル
+          ├── utils/                # ユーティリティ関数
+          │   └── formatters.ts
+          └── main.tsx              # アプリケーションエントリーポイント (例: index.tsx, main.js)
+
+      - type: "モノレポ - バックエンドサービス ('services/my-backend-service/src/')"
+        description: "モノレポ内のバックエンドサービスの構造（例: 'services/<service-name>/src/' 配下）。"
+        path_context: "services/my-backend-service/src/" # 具体的なパスの例
+        structure_example: |
+          src/  # (services/my-backend-service/ からの相対パス)
+          ├── api/
+          │   └── v1/
+          │       └── users.py
+          ├── core/
+          │   └── user_logic.py
+          ├── db/
+          │   └── user_model.py
+          ├── schemas/
+          │   └── user_schema.py
+          └── app.py # または main.py
+
+      - type: "モノレポ - フロントエンドアプリケーション ('apps/my-frontend-app/src/')"
+        description: "モノレポ内のフロントエンドアプリケーションの構造（例: 'apps/<app-name>/src/' 配下）。"
+        path_context: "apps/my-frontend-app/src/" # 具体的なパスの例
+        structure_example: |
+          src/  # (apps/my-frontend-app/ からの相対パス)
+          ├── components/
+          │   └── AuthForm.tsx
+          ├── pages/
+          │   └── LoginPage.tsx
+          ├── services/
+          │   └── authApi.ts
+          ├── store/
+          │   └── authStore.ts
+          └── index.tsx
+
+  - scope: "docs_directory"
+    description: "プロジェクトドキュメントディレクトリのガイドライン。"
+    target_path: "docs/"
+    purpose: |
+      'docs/' ディレクトリには、プロジェクトに関する全てのドキュメントが格納されます。
+      これには、設計書、仕様書、APIリファレンス、ガイド、アーキテクチャ決定記録（ADR）などが含まれます。
+      AIがプロジェクトのコンテキストを理解し、適切なコードを生成するためにこれらのドキュメントを参照します。
+
+    sub_directory_patterns:
+      - pattern: "docs/001-adr/"
+        purpose: "アーキテクチャ決定記録 (ADR) を格納します。プロジェクトの重要な技術的決定とその理由を記録します。"
+        example_files: ["001-use-of-specific-database.md", "002-microservices-vs-monolith.md"]
+        notes: "ADRは番号順に整理され、簡潔かつ明確に記述されるべきです。"
+
+      - pattern: "docs/002-requirements/"
+        purpose: "プロジェクトの要求定義に関連するドキュメントを格納します。機能要件、非機能要件などが含まれます。"
+        example_files: ["functional-requirements.md", "non-functional-requirements.xlsx"]
+
+      - pattern: "docs/003-specifications/"
+        purpose: "システムの詳細な仕様に関するドキュメントを格納します。API仕様、データモデル仕様などが含まれます。"
+        example_files: ["api-specification.yaml", "data-model.md"]
+
+      - pattern: "docs/004-testing/"
+        purpose: "テスト戦略、テスト計画、テストケースなど、テストに関連するドキュメントを格納します。"
+        example_files: ["test-plan.md", "ui-test-cases.csv"]
+
+      - pattern: "docs/guides/"
+        purpose: "開発ガイド、セットアップ手順、チュートリアル、運用マニュアルなどを格納します。"
+        example_files: ["developer-setup-guide.md", "deployment-manual.md"]
+        notes: "既存のディレクトリ構造にはありませんが、一般的なドキュメントカテゴリとして提案します。"
+
+      - pattern: "docs/images/"
+        purpose: "ドキュメント内で使用される画像ファイルや図を格納します。"
+        example_files: ["architecture-diagram.png", "logo.svg"]
+        notes: "既存のディレクトリ構造にはありませんが、ドキュメント作成に役立ちます。"
+
+    file_patterns:
+      - pattern: "docs/directory-structure.md"
+        purpose: "プロジェクトのディレクトリ構造に関する規約を記述したドキュメントです。このドキュメント自体も 'docs' ディレクトリの規約に従います。"
+        notes: "このファイルは、プロジェクト全体のディレクトリ構成の理解を助けます。"
+
+      - pattern: "docs/README.md"
+        purpose: "'docs' ディレクトリ全体の概要、各ドキュメントへのポータル、およびドキュメント作成に関する一般的なガイドラインを記述します。"
+        notes: "既存のディレクトリ構造にはありませんが、ナビゲーションの助けになります。"
