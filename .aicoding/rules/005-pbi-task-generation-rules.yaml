@@ -69,7 +69,7 @@ task_list_format:
     - [ ] **タスク1: [新規ファイル作成タスクの概要]**
         - [ ] 1.1. [ファイル作成の詳細]
             - **作成ファイル:** `path/to/new_file.ext`
-            - **内容:**
+            - **内容:** |
               ```[language]
               // new file content
               ```
@@ -77,7 +77,7 @@ task_list_format:
         - [ ] 2.1. [ファイル修正の詳細]
             - **対象ファイル:** `path/to/existing_file.ext`
             - **変更箇所:** [変更箇所の説明、例: X行目に追記、Y行目を修正]
-            - **差分イメージ:**
+            - **差分イメージ:** |
               ```diff
               - old_content_line_1
               - old_content_line_2
@@ -87,7 +87,7 @@ task_list_format:
         - [ ] 2.2. [別のファイル修正の詳細]
             - **対象ファイル:** `path/to/another_file.ext`
             - **変更箇所:** [変更箇所の説明]
-            - **差分イメージ:**
+            - **差分イメージ:** |
               ```diff
               + new_line_to_add_at_specific_location
               ```
@@ -109,45 +109,46 @@ detailed_task_generation_rules:
         詳細: `rustup component add rustfmt` を実行する。
       - タスク: 設定ファイルの作成。
         詳細: プロジェクトルートに `rustfmt.toml` を作成し、以下の内容を記述する。
-        ```toml
-        # rustfmt.toml content
-        max_width = 100
-        ```
+        markdown_code_block: |
+          ```toml
+          # rustfmt.toml content
+          max_width = 100
+          ```
       - タスク: 既存設定ファイルへの追記・修正。
         詳細: `Cargo.toml` の `[package]` セクションを以下のように修正する。
         対象ファイル: `Cargo.toml`
-        差分イメージ:
-        ```diff
-        [package]
-        name = "ghwt"
-        version = "0.1.0"
-        - edition = "2021"
-        + edition = "2024"
-        ```
+        差分イメージ: |
+          ```diff
+          [package]
+          name = "ghwt"
+          version = "0.1.0"
+          - edition = "2021"
+          + edition = "2024"
+          ```
   - category: コード実装・変更に関するタスク
     trigger: PBIの「説明」や「受け入れ基準」に、特定の機能実装、既存コードの修正、リファクタリングに関する記述がある場合。
     example_tasks:
       - タスク: 新規モジュールの作成。
         詳細: `src/new_module.rs` を作成し、以下の初期コードを記述する。
         作成ファイル: `src/new_module.rs`
-        内容:
-        ```rust
-        // Initial content for new_module.rs
-        pub fn hello() {
-            println!("Hello from new_module!");
-        }
-        ```
+        内容: |
+          ```rust
+          // Initial content for new_module.rs
+          pub fn hello() {
+              println!("Hello from new_module!");
+          }
+          ```
       - タスク: 既存関数の修正。
         詳細: `src/main.rs` の `main` 関数を以下のように修正する。
         対象ファイル: `src/main.rs`
-        差分イメージ:
-        ```diff
-        fn main() {
-        -    println!("Old message");
-        +    println!("New, updated message");
-        +    // Add more logic here
-        }
-        ```
+        差分イメージ: |
+          ```diff
+          fn main() {
+          -    println!("Old message");
+          +    println!("New, updated message");
+          +    // Add more logic here
+          }
+          ```
   - category: ドキュメント作成・更新に関するタスク
     trigger: >
       PBIの「説明」や「受け入れ基準」に、ドキュメント（README、CONTRIBUTINGなど）の
@@ -157,11 +158,11 @@ detailed_task_generation_rules:
         詳細: `README-ja.md` の2行目にRustバージョンバッジを追記する。
         対象ファイル: `README-ja.md`
         変更箇所: 2行目
-        差分イメージ:
-        ```diff
-        - [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-        + [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Rust Version](https://img.shields.io/badge/rust-1.87.0-orange.svg)](https://www.rust-lang.org)
-        ```
+        差分イメージ: |
+          ```diff
+          - [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+          + [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Rust Version](https://img.shields.io/badge/rust-1.87.0-orange.svg)](https://www.rust-lang.org)
+          ```
   - category: CI/CDパイプライン設定に関するタスク
     trigger: >
       PBIの「説明」や「受け入れ基準」に、CI/CDパイプラインの構築、ジョブの追加・変更に関する記述がある場合。
@@ -169,21 +170,21 @@ detailed_task_generation_rules:
       - タスク: GitHub Actionsワークフローファイルの作成。
         詳細: `.github/workflows/rust.yml` を作成し、以下の内容を記述する。
         作成ファイル: `.github/workflows/rust.yml`
-        内容:
-        ```yaml
-        name: Rust CI
-        # (以下、ワークフロー内容)
-        ```
+        内容: |
+          ```yaml
+          name: Rust CI
+          # (以下、ワークフロー内容)
+          ```
       - タスク: 既存ワークフローファイルの修正。
         詳細: `.github/workflows/rust.yml` のRustバージョンを更新する。
         対象ファイル: `.github/workflows/rust.yml`
-        差分イメージ:
-        ```diff
-        env:
-          CARGO_TERM_COLOR: always
-        -  RUST_VERSION: 1.86.0
-        +  RUST_VERSION: 1.87.0
-        ```
+        差分イメージ: |
+          ```diff
+          env:
+            CARGO_TERM_COLOR: always
+          -  RUST_VERSION: 1.86.0
+          +  RUST_VERSION: 1.87.0
+          ```
   - category: コミット・バージョン管理に関するタスク
     trigger: 各主要な作業単位の完了時。
     example_tasks:
