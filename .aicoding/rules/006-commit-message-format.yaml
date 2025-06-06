@@ -1,0 +1,42 @@
+# AI-Driven Development Rules - Commit Message Format
+# Version: 1.0
+# Description: Rules for generating consistent commit messages.
+
+# Commit Message Structure
+commit_message_format:
+  template: |
+    {{概要}}
+
+    **対応内容**
+    - {{対応内容1}}
+    - {{対応内容2}}
+
+    **備考**
+    - {{備考1}}
+    - {{備考2}}
+  generation_rules:
+    summary:
+      source: "AIによる自動要約"
+      instruction: "ステージングされたファイルの変更内容を分析し、1行の簡潔な概要を生成する。"
+    details:
+      granularity: "機能・ロジック単位の変更点"
+      instruction: "具体的な関数名やロジックの変更点を記述する。"
+      example: "user_authentication.rs: login関数のエラーハンドリングを改善"
+    remarks:
+      presence: "任意"
+      instruction: "特筆すべき事項があれば記述する。なければセクションごと省略する。"
+
+# Rule Application
+# This rule will be applied by the AI assistant when generating commit messages.
+# The AI will analyze staged changes and populate the template accordingly.
+
+# Commit Execution
+# コミット実行方法に関するルール
+commit_execution:
+  method: "file"
+  description: "コミットメッセージを一時ファイルに書き込み、`git commit -F <tempfile>` を使用してコミットする。"
+  reason: "CLIで `git commit -m` を使用した際に、複数行のメッセージの改行が意図通りに解釈されない場合があるため。"
+  procedure:
+    - "1. AIが生成したコミットメッセージを一時ファイル（例: .git/COMMIT_EDITMSG_TEMP）に保存する。"
+    - "2. `git commit -F .git/COMMIT_EDITMSG_TEMP` コマンドを実行する。"
+    - "3. コミット後、一時ファイルを削除する。"
