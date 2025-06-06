@@ -115,8 +115,8 @@ detailed_task_generation_rules:
           max_width = 100
           ```
       - タスク: 既存設定ファイルへの追記・修正。
-        詳細: `Cargo.toml` の `[package]` セクションを以下のように修正する。
-        対象ファイル: `Cargo.toml`
+        詳細: "`Cargo.toml` の `[package]` セクションを以下のように修正する。"
+        対象ファイル: "`Cargo.toml`"
         差分イメージ: |
           ```diff
           [package]
@@ -129,8 +129,8 @@ detailed_task_generation_rules:
     trigger: PBIの「説明」や「受け入れ基準」に、特定の機能実装、既存コードの修正、リファクタリングに関する記述がある場合。
     example_tasks:
       - タスク: 新規モジュールの作成。
-        詳細: `src/new_module.rs` を作成し、以下の初期コードを記述する。
-        作成ファイル: `src/new_module.rs`
+        詳細: "`src/new_module.rs` を作成し、以下の初期コードを記述する。"
+        作成ファイル: "`src/new_module.rs`"
         内容: |
           ```rust
           // Initial content for new_module.rs
@@ -139,8 +139,8 @@ detailed_task_generation_rules:
           }
           ```
       - タスク: 既存関数の修正。
-        詳細: `src/main.rs` の `main` 関数を以下のように修正する。
-        対象ファイル: `src/main.rs`
+        詳細: "`src/main.rs` の `main` 関数を以下のように修正する。"
+        対象ファイル: "`src/main.rs`"
         差分イメージ: |
           ```diff
           fn main() {
@@ -154,9 +154,9 @@ detailed_task_generation_rules:
       PBIの「説明」や「受け入れ基準」に、ドキュメント（README、CONTRIBUTINGなど）の
       新規作成や更新に関する記述がある場合。または、他のタスクの結果としてドキュメント更新が必要な場合。
     example_tasks:
-      - タスク: `README-ja.md` にバッジを追加。
-        詳細: `README-ja.md` の2行目にRustバージョンバッジを追記する。
-        対象ファイル: `README-ja.md`
+      - タスク: "`README-ja.md` にバッジを追加。"
+        詳細: "`README-ja.md` の2行目にRustバージョンバッジを追記する。"
+        対象ファイル: "`README-ja.md`"
         変更箇所: 2行目
         差分イメージ: |
           ```diff
@@ -168,16 +168,16 @@ detailed_task_generation_rules:
       PBIの「説明」や「受け入れ基準」に、CI/CDパイプラインの構築、ジョブの追加・変更に関する記述がある場合。
     example_tasks:
       - タスク: GitHub Actionsワークフローファイルの作成。
-        詳細: `.github/workflows/rust.yml` を作成し、以下の内容を記述する。
-        作成ファイル: `.github/workflows/rust.yml`
+        詳細: "`.github/workflows/rust.yml` を作成し、以下の内容を記述する。"
+        作成ファイル: "`.github/workflows/rust.yml`"
         内容: |
           ```yaml
           name: Rust CI
           # (以下、ワークフロー内容)
           ```
       - タスク: 既存ワークフローファイルの修正。
-        詳細: `.github/workflows/rust.yml` のRustバージョンを更新する。
-        対象ファイル: `.github/workflows/rust.yml`
+        詳細: "`.github/workflows/rust.yml` のRustバージョンを更新する。"
+        対象ファイル: "`.github/workflows/rust.yml`"
         差分イメージ: |
           ```diff
           env:
@@ -189,44 +189,44 @@ detailed_task_generation_rules:
     trigger: 各主要な作業単位の完了時。
     example_tasks:
       - タスク: 変更をGitにコミットする。
-        詳細: コミットメッセージ `docs: Add Rust version badge to README-ja.md` でコミットする。
+        詳細: "コミットメッセージ `docs: Add Rust version badge to README-ja.md` でコミットする。"
   - category: 確認・テストに関するタスク
     trigger: >
       PBIの「受け入れ基準」の定義時、各機能実装・設定変更の着手前または完了時。
       `/docs/004-testing/test-strategy.md` に基づくTDDのアプローチに従い、実装タスクに先行してテストケースを定義・作成する場合も含む。
     example_tasks:
       - タスク: フォーマットチェックの実行。
-        詳細: `cargo fmt --check` を実行し、エラーが出ないことを確認する。
+        詳細: "`cargo fmt --check` を実行し、エラーが出ないことを確認する。"
       - タスク: リンターチェックの実行。
-        詳細: `cargo clippy -- -D warnings` を実行し、エラーや警告がないことを確認する。
-      - タスク: [機能名] の単体テストケース設計とスタブ作成
+        詳細: "`cargo clippy -- -D warnings` を実行し、エラーや警告がないことを確認する。"
+      - タスク: "[機能名] の単体テストケース設計とスタブ作成"
         詳細: >
           [機能名] 関数のための単体テストケースを設計し、テストスタブを作成する。
           テストは対象となる機能が実装されているソースファイル（例: `src/[module_name].rs`）と
           同じファイル内の `#[cfg(test)] mod tests { ... }` モジュールに記述する。
           テスト関数名は `test_[function_name]_[scenario]` のように、テスト対象と内容がわかるように命名する。
-        作成場所: `src/[module_name].rs` (同ファイル内のテストモジュール内)
-        確認事項: テストスタブ (`fn test_...() { unimplemented!(); }`) が作成されていること。
-      - タスク: [機能/PBI名] の統合テストケース設計とスタブ作成
+        作成場所: "`src/[module_name].rs` (同ファイル内のテストモジュール内)"
+        確認事項: "テストスタブ (`fn test_...() { unimplemented!(); }`) が作成されていること。"
+      - タスク: "[機能/PBI名] の統合テストケース設計とスタブ作成"
         詳細: >
           [機能/PBI名] のための統合テストケースを設計し、テストスタブを作成する。
           テストファイルはプロジェクトルート直下の `tests/` ディレクトリ配下に、
           テスト対象の機能やモジュール名がわかるような名前（例: `[feature_or_module_name]_test.rs` または `integration_[feature_name]_test.rs`）で作成する。
-        作成ファイル: `tests/[feature_or_module_name]_test.rs`
-        内容:
-        ```rust
-        // 例: tests/config_loading_test.rs
-        // 必要な use 文 (例: use super::*, use crate::module::*)
-
-        #[test]
-        fn test_[scenario_description]() {
-            // 準備 (arrange)
-            // 実行 (act)
-            // 検証 (assert)
-            unimplemented!();
-        }
-        ```
-        確認事項: `tests/` ディレクトリ以下にテストファイルとテストスタブが作成されていること。
+        作成ファイル: "`tests/[feature_or_module_name]_test.rs`"
+        内容: |
+            ```rust
+            // 例: tests/config_loading_test.rs
+            // 必要な use 文 (例: use super::*, use crate::module::*)
+    
+            #[test]
+            fn test_[scenario_description]() {
+                // 準備 (arrange)
+                // 実行 (act)
+                // 検証 (assert)
+                unimplemented!();
+            }
+            ```
+        確認事項: "`tests/` ディレクトリ以下にテストファイルとテストスタブが作成されていること。"
 
 # ルールの適用例
 application_example: >
@@ -274,4 +274,3 @@ future_improvements:
     - タスク分割の最適化。
     - 生成されるタスクの質の向上。
     - プロジェクト固有の規約や前提条件の取り込み。
-
