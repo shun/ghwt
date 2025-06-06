@@ -8,7 +8,7 @@
 
 タスク生成にあたっては、以下のルールファイルの内容を**厳密に**遵守してください。
 
-- **ルールファイル:** `/Users/skudo/ghq/github.com/shun/ghwt/.aicoding/rules/005-pbi-task-generation-rules.yaml`
+- **ルールファイル:** `.aicoding/rules/005-pbi-task-generation-rules.yaml`
 
 ## 特に遵守すべき主要ルール（ルールファイルからの抜粋・再確認）
 
@@ -41,7 +41,7 @@ PBIの内容から上記のルール（特に「超具体性」や「タスク�
 
 ## 出力
 
-上記のルールに従い、PBIから抽出・生成したタスクリストを、ルールファイル (`/Users/skudo/ghq/github.com/shun/ghwt/.aicoding/rules/005-pbi-task-generation-rules.yaml`) の `task_list_format` セクションで定義されたMarkdown形式で出力してください。
+上記のルールに従い、PBIから抽出・生成したタスクリストを、ルールファイル (`.aicoding/rules/005-pbi-task-generation-rules.yaml`) の `task_list_format` セクションで定義されたMarkdown形式で出力してください。
 
 **タスクリスト:**
 
