@@ -1,0 +1,21 @@
+# .aicoding/rules/006-tool-usage-guidelines.yaml
+# 特定のコマンドラインツールの使用方法に関するガイドライン
+
+command_guidelines:
+  - tool_name: "gh" # 対象となるツール名
+    sub_command_pattern: "issue create" # 対象となるサブコマンド（正規表現も可）
+    rules:
+      - id: "GH_ISSUE_CREATE_BODY_FILE"
+        description: "gh issue create コマンドでIssue本文を指定する際は、エスケープ問題を避けるため、必ず一時ファイルに本文を書き出し、--body-file オプションを使用する。"
+        action: "MUST_USE_BODY_FILE"
+        # AIへの具体的な指示や期待される振る舞い
+        implementation_notes: |
+          When the task involves creating a GitHub issue using `gh issue create`:
+          1. The issue body (especially if it's multi-line Markdown or contains special characters)
+             MUST first be written to a temporary file using the `write_to_file` tool.
+          2. The `gh issue create` command MUST then be invoked using the `run_command` tool
+             with the `--body-file /path/to/temporary_file.md` option.
+          3. Directly using the `--body "..."` argument with complex content is PROHIBITED.
+        severity: "ERROR" # このルールに違反した場合の重要度
+
+# 他のツールやコマンドに関するルールもここに追加可能
