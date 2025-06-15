@@ -10,6 +10,7 @@
 
 - **PBIタスク生成ルール:** `.aicoding/rules/005-pbi-task-generation-rules.yaml`
 - **ツール使用ガイドライン:** `.aicoding/rules/006-tool-usage-guidelines.yaml` (特に `gh issue create` の使用時)
+- **Gitワークフロールール:** `.aicoding/rules/007-git-workflow-rules.yaml` (特にコミット時およびPull Request作成時)
 
 ## 特に遵守すべき主要ルール（ルールファイルからの抜粋・再確認）
 

@@ -1,0 +1,48 @@
+# .aicoding/rules/007-git-workflow-rules.yaml
+# Gitワークフロー、特にコミットとPull Request作成に関するルール
+
+git_workflow_rules:
+  - id: "REQUIRE_FEATURE_BRANCH_FOR_PR_WORK"
+    description: |
+      Pull Requestを目的とした開発作業は、'main'ブランチや他の保護された主要ブランチに直接コミットするのではなく、
+      必ず専用のフィーチャーブランチ上で実施しなければならない。
+    trigger_actions: ["git_commit_intent", "git_pr_create_intent"] # このルールが評価されるべきAIの行動意図
+    guidance_for_ai: |
+      AIアシスタントは、ユーザーからコミットやPull Request作成の指示を受けた際、以下の手順で適切なGitワークフローを保証する。
+
+      1. **現在ブランチの確認:**
+         まず、現在のGitブランチ名を確認する。
+
+      2. **'main'ブランチ (または主要な保護ブランチ) での作業時:**
+         a. **コミット指示の場合:**
+            ユーザーが 'main' ブランチ上でコミットしようとしている場合、以下のように確認し、フィーチャーブランチへの移行を促す。
+            「現在 'main' ブランチです。Pull Requestを予定している変更を 'main' に直接コミットすることは推奨されません。
+            これらの変更のために新しいフィーチャーブランチを作成しますか？ (例: feature/my-new-feature)」
+            ユーザーが同意した場合、ブランチ作成とそこへのコミットを支援する。
+         b. **Pull Request作成指示の場合:**
+            ユーザーが 'main' ブランチからPull Requestを作成しようとしている場合、以下のように説明し、正しい手順を案内する。
+            「Pull Requestは通常、フィーチャーブランチから 'main' ブランチへ作成します。現在は 'main' ブランチです。
+            これらの変更を新しいフィーチャーブランチにコミットし、そのブランチからPull Requestを作成する意図でしたか？」
+            必要であれば、フィーチャーブランチへのコミット、プッシュ、PR作成の手順を支援する。
+
+      3. **フィーチャーブランチでの作業時:**
+         a. **コミット指示の場合:** 通常通りコミットを実行する。
+         b. **Pull Request作成指示の場合:**
+            フィーチャーブランチがリモートにプッシュされていることを確認する (必要であればプッシュを促す)。
+            その後、フィーチャーブランチから対象のベースブランチ（例: 'main'）へのPull Request作成を実行する。
+            コマンド例: `gh pr create --base main --head YOUR_FEATURE_BRANCH`
+
+    severity: "CRITICAL" # このルールはGit運用において非常に重要
+
+  - id: "PREVENT_MAIN_TO_MAIN_PR"
+    description: |
+      'main' ブランチから 'main' ブランチへのPull Request作成は無効であり、これを試みてはならない。
+      これは通常、フィーチャーブランチワークフローが守られていない場合に発生する。
+    trigger_actions: ["git_pr_create_intent"]
+    guidance_for_ai: |
+      AIアシスタントは、`gh pr create` コマンドなどを実行する際、
+      ソースブランチ (例: `--head` で指定されるブランチ、またはカレントブランチ) と
+      ターゲットブランチ (例: `--base` で指定されるブランチ) が
+      両方とも 'main' (または同一の主要保護ブランチ) になっていないかを確認する。
+      もし該当する場合、エラーをユーザーに説明し、正しいフィーチャーブランチワークフローを案内する。
+    severity: "ERROR"
