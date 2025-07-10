@@ -5,8 +5,7 @@
 # Commit Message Structure
 commit_message_format:
   template: |
-    {{概要}}
-
+    {{タイトル}}
     **対応内容**
     - {{対応内容1}}
     - {{対応内容2}}
@@ -26,6 +25,16 @@ commit_message_format:
       presence: "任意"
       instruction: "特筆すべき事項があれば記述する。なければセクションごと省略する。"
 
+  examples:
+    - |
+      APIタイムアウト処理を追加
+      **対応内容**
+      - api/client.rs: retry ロジックを追加
+      - タイムアウト値を設定
+
+      **備考**
+      - issue #1234
+
 # Rule Application
 # This rule will be applied by the AI assistant when generating commit messages.
 # The AI will analyze staged changes and populate the template accordingly.
@@ -33,10 +42,18 @@ commit_message_format:
 # Commit Execution
 # コミット実行方法に関するルール
 commit_execution:
-  method: "file"
-  description: "コミットメッセージを一時ファイルに書き込み、`git commit -F <tempfile>` を使用してコミットする。"
-  reason: "CLIで `git commit -m` を使用した際に、複数行のメッセージの改行が意図通りに解釈されない場合があるため。"
+  method: "inline"
+  description: "`git commit -m \"<multi-line message>\"` を使用して改行込みのメッセージを直接渡してコミットする。"
   procedure:
-    - "1. AIが生成したコミットメッセージを一時ファイル（例: .git/COMMIT_EDITMSG_TEMP）に保存する。"
-    - "2. `git commit -F .git/COMMIT_EDITMSG_TEMP` コマンドを実行する。"
-    - "3. コミット後、一時ファイルを削除する。"
+    - "1. AIが生成したコミットメッセージをシェルエスケープに注意しつつ `git commit -m` の引数として渡す。"
+    - "2. ファイルを作成せずにコミットが完了することを確認する。"
+  example_command: |
+    git commit -m "{{タイトル}}
+    **対応内容**
+    - {{対応内容1}}
+    - {{対応内容2}}
+
+    **備考**
+    - {{備考1}}
+    - {{備考2}}
+    "
