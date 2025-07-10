@@ -558,7 +558,7 @@ erDiagram
 
 ## 5. 完了条件チェックリスト
 
-- [x] `docs/003-specifications/data-structures.md` ファイルが作成されている
+- [x] `docs/003-designs/data-structures.md` ファイルが作成されている
 - [x] 概念レベルのデータ構造が定義されている
 - [x] JSON出力形式がJSON Schemaで厳密に定義されている
 - [x] CLI仕様書との整合性が保たれている
@@ -575,7 +575,7 @@ erDiagram
 - [TOML設定ファイル完全スキーマ仕様書](./config-schema.md)
 - [エラーハンドリング完全仕様書](./error-handling.md)
 - [要件定義書](../002-requirements/requirements-ja.md)
-- [ADR-004: Rust実装の選択](../001-adr/004-rust-implementation.md)
+- [ADR-004: Rust実装の選択](../004-adr/004-rust-implementation.md)
 
 ---
 

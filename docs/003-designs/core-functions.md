@@ -323,7 +323,7 @@ Hint: The branch is already in use by another worktree
 
 ## 完了条件チェックリスト
 
-- [x] `docs/003-specifications/core-functions.md` ファイルが作成されている
+- [x] `docs/003-designs/core-functions.md` ファイルが作成されている
 - [x] `ghwt get` の完全な実装手順が定義されている
 - [x] `ghwt new` の完全な実装手順が定義されている
 - [x] 各コマンドの概要が明確に記述されている

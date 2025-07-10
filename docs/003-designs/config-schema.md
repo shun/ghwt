@@ -354,7 +354,7 @@ fn is_writable(path: &PathBuf) -> bool {
 
 ## 8. 完了条件チェックリスト
 
-- [x] `docs/003-specifications/config-schema.md` ファイルが作成されている
+- [x] `docs/003-designs/config-schema.md` ファイルが作成されている
 - [x] 完全なTOMLスキーマが定義されている
 - [x] 全設定項目のバリデーションルールが明記されている
 - [x] 設定の優先順位が明確に定義されている
@@ -367,7 +367,7 @@ fn is_writable(path: &PathBuf) -> bool {
 
 ## 9. 関連ドキュメント
 
-- [ADR-006: TOML設定ファイルとXDG Base Directory Specificationの採用](../001-adr/006-toml-config.md)
+- [ADR-006: TOML設定ファイルとXDG Base Directory Specificationの採用](../004-adr/006-toml-config.md)
 - [CLI インターフェース完全仕様書](./cli-interface.md)
 - [要件定義書](../002-requirements/requirements-ja.md)
 

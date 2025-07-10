@@ -21,7 +21,7 @@ MVPとして必要最小限のコマンド（`ghwt get`、`ghwt new`）の入出
 ## 関連ドキュメント
 
 - [../002-requirements/requirements-ja.md](../002-requirements/requirements-ja.md) - 基本要件
-- [../001-adr/](../001-adr/) - アーキテクチャ決定記録
+- [../004-adr/](../004-adr/) - アーキテクチャ決定記録
 
 ## 変更履歴
 
@@ -127,7 +127,7 @@ Error: Failed to clone repository: <git_error_message>
 ```
 
 #### 終了コード
-**詳細なエラーコード体系**: [../003-specifications/error-handling.md](../003-specifications/error-handling.md)
+**詳細なエラーコード体系**: [../003-designs/error-handling.md](../003-designs/error-handling.md)
 
 | コード | 説明 |
 |--------|------|
@@ -212,7 +212,7 @@ Error: Failed to create worktree: <git_error_message>
 ```
 
 #### 終了コード
-**詳細なエラーコード体系**: [../003-specifications/error-handling.md](../003-specifications/error-handling.md)
+**詳細なエラーコード体系**: [../003-designs/error-handling.md](../003-designs/error-handling.md)
 
 | コード | 説明 |
 |--------|------|
@@ -347,7 +347,7 @@ ghwt new myapp feature-test --json | jq '.worktree.path'
 
 GHWT は統一されたエラーハンドリング戦略を採用します。
 
-**完全なエラー仕様**: [../003-specifications/error-handling.md](../003-specifications/error-handling.md)
+**完全なエラー仕様**: [../003-designs/error-handling.md](../003-designs/error-handling.md)
 
 ### 5.2 基本エラーフォーマット
 

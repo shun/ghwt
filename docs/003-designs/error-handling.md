@@ -638,7 +638,7 @@ async fn test_error_handling_integration() {
 
 ## 8. 完了条件チェックリスト
 
-- [x] `docs/003-specifications/error-handling.md` ファイルが作成されている
+- [x] `docs/003-designs/error-handling.md` ファイルが作成されている
 - [x] 完全なエラーコード一覧が定義されている
 - [x] エラーメッセージフォーマットが統一されている
 - [x] 国際化対応の仕様が含まれている
@@ -656,7 +656,7 @@ async fn test_error_handling_integration() {
 - [CLI インターフェース完全仕様書](./cli-interface.md)
 - [TOML設定ファイル完全スキーマ仕様書](./config-schema.md)
 - [要件定義書](../002-requirements/requirements-ja.md)
-- [ADR-005: エラーハンドリング戦略](../001-adr/005-error-handling.md)
+- [ADR-005: エラーハンドリング戦略](../004-adr/005-error-handling.md)
 
 ---
 

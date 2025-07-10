@@ -139,22 +139,30 @@ conventions:
       AIがプロジェクトのコンテキストを理解し、適切なコードを生成するためにこれらのドキュメントを参照します。
 
     sub_directory_patterns:
-      - pattern: "docs/001-adr/"
-        purpose: "アーキテクチャ決定記録 (ADR) を格納します。プロジェクトの重要な技術的決定とその理由を記録します。"
-        example_files: ["001-use-of-specific-database.md", "002-microservices-vs-monolith.md"]
-        notes: "ADRは番号順に整理され、簡潔かつ明確に記述されるべきです。"
+      - pattern: "docs/001-demands/"
+        purpose: "プロジェクトの要求 (Demands) を格納します。ステークホルダー視点のビジネスゴールやユーザーストーリーなど高レベルの要求を記述します。"
+        example_files: ["demands-ja.md"]
+        notes: "要求は上位概念として、要件定義・設計の前提を提供します。"
 
       - pattern: "docs/002-requirements/"
-        purpose: "プロジェクトの要求定義に関連するドキュメントを格納します。機能要件、非機能要件などが含まれます。"
-        example_files: ["functional-requirements.md", "non-functional-requirements.xlsx"]
+        purpose: "プロジェクトの要件定義 (Requirements) に関連するドキュメントを格納します。機能要件、非機能要件などが含まれます。"
+        example_files: ["requirements-ja.md"]
 
-      - pattern: "docs/003-specifications/"
-        purpose: "システムの詳細な仕様に関するドキュメントを格納します。API仕様、データモデル仕様などが含まれます。"
+      - pattern: "docs/003-designs/"
+        purpose: "システムの詳細な設計ドキュメントを格納します。API仕様、データモデル仕様などが含まれます。"
         example_files: ["api-specification.yaml", "data-model.md"]
 
-      - pattern: "docs/004-testing/"
+      - pattern: "docs/004-adr/"
+        purpose: "アーキテクチャ決定記録 (ADR) を格納します。プロジェクトの重要な技術的決定とその理由を記録します。"
+        example_files: ["001-bare-repository.md", "002-cli-scope.md"]
+
+      - pattern: "docs/005-testing/"
         purpose: "テスト戦略、テスト計画、テストケースなど、テストに関連するドキュメントを格納します。"
         example_files: ["test-plan.md", "ui-test-cases.csv"]
+
+
+
+
 
       - pattern: "docs/guides/"
         purpose: "開発ガイド、セットアップ手順、チュートリアル、運用マニュアルなどを格納します。"

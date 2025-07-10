@@ -188,7 +188,7 @@ cd ~/ghwt/backend && cd "$(ghwt new feature/new-api)"
 ## 📚 関連リンク
 
 - [要件定義書](docs/002-requirements/requirements-ja.md)
-- [アーキテクチャ決定記録](docs/001-adr/README.md)
-- [仕様書](docs/003-specifications/)
+- [アーキテクチャ決定記録](docs/004-adr/README.md)
+- [設計書](docs/003-designs/)
 - [Git Worktree 公式ドキュメント](https://git-scm.com/docs/git-worktree)
 - [Nick Nisi の Git Worktree 記事](https://nicknisi.com/posts/git-worktrees/)

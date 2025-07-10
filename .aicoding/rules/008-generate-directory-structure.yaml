@@ -1,0 +1,38 @@
+# .aicoding/rules/008-directory-structure-generation.yaml
+# ディレクトリ構造ドキュメント生成に関するルール
+
+document_generation_rules:
+  target_file: "docs/directory-structure.md"
+  scope:
+    - "project_root"
+    - "docs_directory"
+  inclusion_criteria: "実際に存在するディレクトリとファイルのみ"
+  display_format:
+    description: "treeコマンド形式の階層表示"
+    example: |
+      ```
+      .
+      ├── .gitignore                                              # Gitの管理対象から除外するファイルを指定
+      ├── LICENSE                                                 # プロジェクトのライセンス情報
+      ├── README.md                                               # プロジェクトの概要と説明
+      └── .aicoding/                                              # AIコーディングアシスタントの設定とルール
+          ├── setup.sh                                            # 初期セットアップスクリプト
+          ├── UNIVERSAL_AGENT_RULES.md                            # エージェント共通ルール
+          ├── prompts/                                            # AIプロンプトの定義
+          │   ├── 001-create-github-issue.md                      # GitHub Issue作成プロンプト
+          │   └── 002-execute-github-issue.md                     # GitHub Issue実行プロンプト
+          └── rules/                                              # AIルールの定義
+              ├── 001-create-github-issue.yaml                    # GitHub Issue作成ルール
+              └── 002-execute-github-issue.yaml                   # GitHub Issue実行ルール
+      ```
+  description_format:
+    - "各ディレクトリとファイルに簡潔な説明（1行程度）を付与"
+    - "AIがファイルシステムをスキャンして得られた情報に基づいて生成"
+  comment_rules:
+    start_character: "#" # コメントはシャープ記号で開始
+    start_column: 60     # コメントは60桁目以降から開始
+    block_per_structure: true # ディレクトリ構造の各ブロックは1つのコメントブロックとして扱う
+  conciseness_policy:
+    - "詳細な規約や使用例を含めない"
+    - "プロジェクト内に存在しないディレクトリに関する記述を含めない"
+  accuracy_policy: "プロジェクトの現在の実際のディレクトリ構造を正確に反映"

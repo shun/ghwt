@@ -11,8 +11,8 @@ Version 1.0 — 2025-06-01
 ## 関連ドキュメント
 
 - [./test-strategy.md](./test-strategy.md) - テスト戦略
-- [../003-specifications/cli-interface.md](../003-specifications/cli-interface.md) - CLI インターフェース仕様
-- [../003-specifications/filesystem-layout.md](../003-specifications/filesystem-layout.md) - ファイルシステムレイアウト仕様
+- [../003-designs/cli-interface.md](../003-designs/cli-interface.md) - CLI インターフェース仕様
+- [../003-designs/filesystem-layout.md](../003-designs/filesystem-layout.md) - ファイルシステムレイアウト仕様
 - [../002-requirements/requirements-ja.md](../002-requirements/requirements-ja.md) - 基本要件
 
 ## 変更履歴

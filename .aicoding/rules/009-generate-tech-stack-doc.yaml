@@ -1,0 +1,21 @@
+# 技術スタックのドキュメント作成ルール
+
+# 以下のファイルが存在する場合、それぞれに対応する技術スタックが
+# プロジェクトで利用されていると判断し、ドキュメントに記載する。
+
+tech_stack:
+  - name: "フロントエンド"
+    evidence:
+      - "package.json"
+  - name: "Python"
+    evidence:
+      - "pyproject.toml"
+  - name: "Go"
+    evidence:
+      - "go.mod"
+  - name: "GitHub Actions"
+    # フロントエンドなどで使用するNode.jsやパッケージマネージャのバージョン情報は、
+    # GitHub Actionsの設定から取得することが多いため、関連ファイルを参照します。
+    evidence:
+      - ".github/workflows/*.yaml"
+      - ".github/workflows/*.yml"

@@ -10,8 +10,8 @@ TDD (Test-Driven Development) アプローチを採用し、テスト仕様を�
 
 ## 関連ドキュメント
 
-- [../003-specifications/cli-interface.md](../003-specifications/cli-interface.md) - CLI インターフェース仕様
-- [../003-specifications/filesystem-layout.md](../003-specifications/filesystem-layout.md) - ファイルシステムレイアウト仕様
+- [../003-designs/cli-interface.md](../003-designs/cli-interface.md) - CLI インターフェース仕様
+- [../003-designs/filesystem-layout.md](../003-designs/filesystem-layout.md) - ファイルシステムレイアウト仕様
 - [../002-requirements/requirements-ja.md](../002-requirements/requirements-ja.md) - 基本要件
 - [implementation-guidelines.md](implementation-guidelines.md) - 実装ガイドライン
 

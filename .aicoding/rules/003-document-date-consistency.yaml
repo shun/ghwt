@@ -23,7 +23,7 @@ document_date_management:
     specifications:
       location: "**Date**: YYYY-MM-DD"
       example: "**Date**: 2025-05-31"
-      files: "docs/003-specifications/*.md"
+      files: "docs/003-designs/*.md"
       
     requirements:
       version_line:

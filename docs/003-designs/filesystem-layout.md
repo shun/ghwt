@@ -19,7 +19,7 @@ bare repository + worktree レイアウトの詳細仕様を明確化する。
 ## 関連ドキュメント
 
 - [../002-requirements/requirements-ja.md](../002-requirements/requirements-ja.md) - 基本要件
-- [../001-adr/003-directory-principle.md](../001-adr/003-directory-principle.md) - ディレクトリ原則
+- [../004-adr/003-directory-principle.md](../004-adr/003-directory-principle.md) - ディレクトリ原則
 - [cli-interface.md](cli-interface.md) - CLI インターフェース仕様
 
 ## 変更履歴

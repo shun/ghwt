@@ -15,8 +15,8 @@ Version 1.0 — 2025-06-01
 
 ## 関連ドキュメント
 
-- [../001-adr/](../001-adr/) - アーキテクチャ決定記録
-- [../003-specifications/](../003-specifications/) - 詳細仕様書群
+- [../004-adr/](../004-adr/) - アーキテクチャ決定記録
+- [../003-designs/](../003-designs/) - 詳細仕様書群
 - [../../README-ja.md](../../README-ja.md) - プロジェクト概要
 
 ## 変更履歴
@@ -175,12 +175,12 @@ cd "$(ghwt new hotfix-urgent)"      # 緊急修正（並行）
 **Nick Nisi式アーキテクチャの採用:**
 - 「1 Repository = 1 Directory」原則による構造化
 - bare repository + worktree + gitfile による技術基盤
-- **詳細な技術仕様**: [../003-specifications/filesystem-layout.md](../003-specifications/filesystem-layout.md)
+- **詳細な技術仕様**: [../003-designs/filesystem-layout.md](../003-designs/filesystem-layout.md)
 
 **実装方針:**
 - CLI による自動化でユーザーは技術詳細を意識不要
 - ghq互換でスムーズな移行体験
-- **詳細な実装仕様**: [../003-specifications/core-functions.md](../003-specifications/core-functions.md)
+- **詳細な実装仕様**: [../003-designs/core-functions.md](../003-designs/core-functions.md)
 
 ---
 
@@ -202,7 +202,7 @@ cd "$(ghwt new hotfix-urgent)"      # 緊急修正（並行）
 | `--verbose` | `-v` | 詳細出力 | 全コマンド |
 | `--quiet` | `-q` | 静寂モード | 全コマンド |
 
-**詳細なコマンド仕様**: [../003-specifications/cli-interface.md](../003-specifications/cli-interface.md)
+**詳細なコマンド仕様**: [../003-designs/cli-interface.md](../003-designs/cli-interface.md)
 
 ---
 
@@ -234,7 +234,7 @@ cd "$(ghwt new hotfix-urgent)"      # 緊急修正（並行）
 
 | 項目 | 仕様 | 詳細 |
 |------|------|------|
-| エラーコード体系 | 統一化 | 詳細: [../003-specifications/error-handling.md](../003-specifications/error-handling.md) |
+| エラーコード体系 | 統一化 | 詳細: [../003-designs/error-handling.md](../003-designs/error-handling.md) |
 | エラーメッセージ | 構造化 | メッセージ・詳細・ヒント |
 | 回復戦略 | 段階的 | 自動回復 → ユーザー確認 → 手動対応 |
 | ログ出力 | 詳細モード | `--verbose` フラグで詳細情報 |
@@ -254,15 +254,15 @@ cd "$(ghwt new hotfix-urgent)"      # 緊急修正（並行）
 
 ## 5. アーキテクチャ決定記録 (ADR)
 
-重要なアーキテクチャ決定とその根拠については、別途 **[../001-adr/](../001-adr/)** を参照。
+重要なアーキテクチャ決定とその根拠については、別途 **[../004-adr/](../004-adr/)** を参照。
 
 主要な決定項目：
-- [ADR-001](../001-adr/001-bare-repository.md): Bare Repository + Gitfile アーキテクチャの採用
-- [ADR-002](../001-adr/002-cli-scope.md): CLI の責務範囲の限定
-- [ADR-003](../001-adr/003-directory-principle.md): 1 Repository = 1 Directory 原則
-- [ADR-004](../001-adr/004-rust-implementation.md): Rust 実装の選択
-- [ADR-005](../001-adr/005-mit-license.md): MIT ライセンスの採用
-- [ADR-006](../001-adr/006-toml-config.md): TOML 設定ファイルと XDG Base Directory Specification の採用
+- [ADR-001](../004-adr/001-bare-repository.md): Bare Repository + Gitfile アーキテクチャの採用
+- [ADR-002](../004-adr/002-cli-scope.md): CLI の責務範囲の限定
+- [ADR-003](../004-adr/003-directory-principle.md): 1 Repository = 1 Directory 原則
+- [ADR-004](../004-adr/004-rust-implementation.md): Rust 実装の選択
+- [ADR-005](../004-adr/005-mit-license.md): MIT ライセンスの採用
+- [ADR-006](../004-adr/006-toml-config.md): TOML 設定ファイルと XDG Base Directory Specification の採用
 
 ---
 
@@ -283,7 +283,7 @@ cd ~/ghwt/alpha
 cd "$(ghwt new hotfix-123)"
 ```
 
-**詳細な技術仕様**: [../003-specifications/core-functions.md](../003-specifications/core-functions.md)
+**詳細な技術仕様**: [../003-designs/core-functions.md](../003-designs/core-functions.md)
 
 ---
 
