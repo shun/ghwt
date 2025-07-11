@@ -351,200 +351,90 @@ issue_task_execution:
       rule: "コード変更を伴う場合は、プロジェクトのコーディング規約に従う"
       tools: "リンター、フォーマッター、静的解析ツールを活用"
 
-# 2. Integration with Development Tools
-# ------------------------------------
-development_tools_integration:
-  primary_tools: ["Cursor", "Windsurf", "GitHub CLI", "Git"]
-  
-  github_cli_usage:
-    issue_retrieval: 
-      primary: "gh issue view [issue_number] | cat"
-      fallback: "gh issue view [issue_number] --json title,body,labels,state"
-      api_fallback: "curl -H 'Accept: application/vnd.github.v3+json' https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}"
-    issue_update: "gh issue edit [issue_number] --body [updated_body]"
-    issue_comment: "gh issue comment [issue_number] --body-file [temp_file_path]"
-    issue_close: "gh issue close [issue_number] --comment [completion_message]"
-    pr_creation: "gh pr create --title [title] --body-file [temp_file_path] --base main --head [branch]"
-    pr_creation_rules:
-      - "PRのタイトルとボディは必ず一時ファイルを使用"
-      - "改行文字を含む場合は--body-fileオプションを使用"
-      - "一時ファイルは/tmp/ghwt-pr-body-{timestamp}.txtに作成"
-      - "PR作成後に一時ファイルを削除"
-      - "コマンドライン引数での--bodyオプションは使用禁止"
-    
-  git_workflow:
-    branch_creation: "git checkout -b feature/issue-{issue_number}-{sanitized_title}"
-    branch_push: "git push -u origin feature/issue-{issue_number}-{sanitized_title}"
-    commit_strategy: "人間のレビューOK後に一括コミット"
-    commit_execution:
-      staging: "git add [changed_files]"
-      commit_command: 'git commit -F [temp_file_path]'
-      notes_handling: "備考がある場合のみ一時ファイルに含める"
-      temp_file_creation: "コミットメッセージを/tmpの一時ファイルに作成"
-    commit_message_format: |
-      {issue_title}
-      
-      - {implementation_item_1}
-      - {implementation_item_2}
-      
-      備考
-      - {note_1}
-      - {note_2}
-    commit_message_rules:
-      - "備考がない場合は「備考」セクションを省略"
-      - "各項目は「- 」で始める"
-      - "具体的な実装内容を記載"
-      - "git commit -F オプションで一時ファイル使用"
-    
-  temporary_file_management:
-    base_directory: "/tmp"
-    naming_convention: "ghwt-{operation}-{timestamp}.txt"
-    operations:
-      pr_body: "/tmp/ghwt-pr-body-{timestamp}.txt"
-      issue_comment: "/tmp/ghwt-issue-comment-{timestamp}.txt"
-      commit_message: "/tmp/ghwt-commit-message-{timestamp}.txt"
-    cleanup_policy: "操作完了後に即座に削除"
-    pr_creation_workflow:
-      step1: "PR本文を一時ファイルに書き込み"
-      step2: "gh pr create --title [title] --body-file [temp_file] を実行"
-      step3: "PR作成成功後に一時ファイルを削除"
-      step4: "エラー時も一時ファイルをクリーンアップ"
-      mandatory_usage: "改行を含むPR本文は必ず一時ファイル経由で作成"
-    
-  cursor_windsurf_integration:
-    parallel_development: "複数のファイルやコンポーネントを同時に編集"
-    ai_assistance: "コード生成、リファクタリング、テスト作成の支援"
-    
-  version_control:
-    branch_strategy: "Issue番号を含むブランチ名を使用（例：feature/issue-123-cli-interface-spec）"
-    commit_message: "指定されたフォーマットに従ったコミットメッセージ"
-    pull_request: "Issue番号を参照するPull Requestを自動作成"
+    automated_quality_checks:
+      rule: "タスク実行後、プロジェクトの品質基準を満たしているか自動的に確認する。"
+      process:
+        - step: "コマンド特定"
+          action: "プロジェクトの言語やフレームワークを自動検出し、対応するフォーマット、リンター、ビルド、テストコマンドを特定する。"
+          discovery_methods:
+            - "プロジェクトルートのファイル（package.json, Cargo.toml, pyproject.toml, build.gradle, Makefileなど）を解析する。"
+            - "一般的なコマンドパターン（npm run lint, cargo fmt, pytest, make testなど）を試行する。"
+            - "プロジェクトのドキュメント（CONTRIBUTING.md, README.mdなど）からコマンド情報を抽出する。"
+          fallback: "特定できない場合は、ユーザーに適切なコマンドを質問する。"
+        - step: "コマンド実行"
+          action: "特定されたコマンドを順次実行する。"
+          commands_to_run:
+            - "format_check_command" # 特定されたコマンドのプレースホルダー
+            - "lint_check_command"   # 特定されたコマンドのプレースホルダー
+            - "build_command"        # 特定されたコマンドのプレースホルダー
+            - "test_command"         # 特定されたコマンドのプレースホルダー
+        - step: "結果評価"
+          action: "各コマンドの実行結果（終了コード、標準出力、標準エラー出力）を評価し、エラーがないか確認する。"
+          success_criteria: "すべてのコマンドがエラーなく終了すること。"
+      error_handling:
+        condition: "品質チェックでエラーが発生した場合"
+        action: "エラー内容を分析し、自動修正を試みる。自動修正が困難な場合は、人間の支援を求める。"
+        loop_back_to_task_execution: true # これはメインの実行プロセスループで処理される
 
-# 3. Automation Settings
-# ----------------------
-automation_settings:
-  auto_branch_creation:
-    enabled: true
-    naming_pattern: "feature/issue-{issue_number}-{sanitized_title}"
-    
-  auto_checkbox_update:
-    enabled: true
-    update_method: "github_api"
-    
-  human_review_requirement:
-    enabled: true
-    wait_for_approval: true
-    approval_keywords: ["レビューOK", "LGTM", "Approved", "OK"]
-    
-  auto_commit_after_review:
-    enabled: true
-    trigger: "human_review_approval"
-    commit_method: "temp_file_with_F_option"
-    
-  auto_pr_creation:
-    enabled: true
-    draft_mode: false
-    auto_assign_reviewers: false
-    trigger: "after_commit"
-    method: "body_file_option"
-    implementation_rules:
-      - "PR本文は必ず一時ファイルに作成"
-      - "gh pr create --body-file オプションを使用"
-      - "コマンドライン引数での--bodyは使用禁止"
-      - "改行文字の問題を回避するため一時ファイル必須"
-      - "作成後に一時ファイルを自動削除"
-    
-  auto_issue_close:
-    enabled: false  # デフォルトは無効、人間の確認を推奨
-    condition: "all_tasks_completed_and_pr_created"
-    
-  progress_reporting:
-    auto_comment: true
-    frequency: "per_task_completion"
-    
-  temporary_file_management:
-    auto_create: true
-    auto_cleanup: true
-    location: "/tmp"
+  execution_process:
+    steps:
+      - step_id: "E0"
+        title: "Issue取得の確実な実行"
+        actors: ["AI"]
+        action: "複数の方法でIssue内容を確実に取得する"
+        commands:
+          - "gh issue view {issue_number} | cat"
+          - "gh issue view {issue_number} --json title,body,labels,state"
+          - "curl -H 'Accept: application/vnd.github.v3+json' https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}"
+        fallback_actions:
+          - "PAGERの問題がある場合は | cat を追加"
+          - "GitHub CLIが失敗した場合はAPIを直接使用"
+          - "認証エラーの場合は認証状態を確認"
+        key_inputs: ["Issue番号"]
+        key_outputs: ["Issue詳細情報"]
+        
+      - step_id: "E1"
+        title: "ブランチ作成と作業環境準備"
+        actors: ["AI"]
+        action: "Issue番号とタイトルに基づいてブランチを作成し、作業環境を準備する"
+        commands:
+          - "git checkout -b feature/issue-{issue_number}-{sanitized_title}"
+          - "git push -u origin feature/issue-{issue_number}-{sanitized_title}"
+        key_inputs: ["Issue番号", "Issueタイトル"]
+        key_outputs: ["作業ブランチ"]
+        
+      - step_id: "E2"
+        title: "タスク分析と実行計画策定"
+        actors: ["AI"]
+        action: "取得したIssue内容を分析し、タスクの優先度、依存関係、並列実行可能性を考慮した実行計画を策定する"
+        key_inputs: ["Issue詳細情報"]
+        key_outputs: ["実行計画", "タスク依存関係マップ"]
+        
+      - step_id: "E3"
+        title: "実行計画の提示と即座実行開始"
+        actors: ["AI"]
+        action: "AIが策定した実行計画を提示し、即座に実行を開始する。人間の承認を待たずに標準的なタスクは自動実行する"
+        key_inputs: ["実行計画", "タスク依存関係マップ"]
+        key_outputs: ["実行中の計画"]
+        
+      - step_id: "E4"
+        title: "タスク実行（並列・逐次）とリアルタイム更新"
+        actors: ["AI"]
+        action: "実行計画に従い、タスクを実行する。各タスク完了時にチェックボックスを自動更新し、進捗を可視化する"
+        key_inputs: ["実行計画"]
+        key_outputs: ["実行結果", "更新されたタスクリスト", "変更されたファイル"]
+        automation:
+          - "タスク完了時のチェックボックス自動更新"
+          - "進捗コメントの自動追加"
+          - "変更内容の記録"
+        
+      - step_id: "E4.1"
+        title: "品質チェックと自己修正ループ"
+        actors: ["AI"]
+        action: "タスク実行後、プロジェクトの品質基準を満たしているか自動的に確認し、必要に応じて自己修正を試みる。"
+        process_reference: "quality_assurance.automated_quality_checks" # 新しいセクションを参照
+        loop_condition: "品質チェックでエラーがある、またはIssueのタスクに未完了がある場合"
+        loop_back_to: "E4" # タスク実行 (E4) に戻り、再試行または修正を行う
 
-# 4. Collaboration Patterns
-# -------------------------
-collaboration_patterns:
-  ai_human_roles:
-    ai_responsibilities:
-      - "Issue内容の解析と理解"
-      - "ブランチ作成と作業環境準備"
-      - "タスクの実行計画策定と即座実行"
-      - "コード実装とテスト"
-      - "チェックボックスの自動更新"
-      - "レビュー依頼の作成"
-      - "レビューOK後のコミット・PR作成"
-      - "進捗状況の追跡と報告"
-      - "技術的問題の初期分析"
-      - "一時ファイルの管理とクリーンアップ"
-      - "PR作成時の一時ファイル使用による改行問題の回避"
-      
-    human_responsibilities:
-      - "作業完了後の品質レビュー"
-      - "レビューOKの判断"
-      - "Pull Requestのレビューと承認"
-      - "技術的判断の最終決定（必要時）"
-      - "Issue完了の最終承認"
-      - "複雑な問題の解決支援"
-      
-  decision_making:
-    autonomous_decisions:
-      - "標準的なコーディングパターンの選択"
-      - "既存コードスタイルに従った実装"
-      - "明確に定義されたタスクの実行方法"
-      - "ブランチ作成とチェックボックス更新"
-      - "一時ファイルの作成・削除"
-      - "コミット・PR作成の技術的手法"
-      - "PR作成時の一時ファイル使用判断（改行を含む場合は必須）"
-      
-    collaborative_decisions:
-      - "作業完了の品質確認（必須レビュー）"
-      - "コミット・PR作成の最終判断"
-      - "アーキテクチャの重要な変更"
-      - "新しい依存関係の追加"
-      - "パフォーマンスに影響する実装選択"
-      - "セキュリティに関わる実装"
-
-# 5. Success Metrics
-# ------------------
-success_metrics:
-  issue_retrieval_success:
-    measure: "Issue取得の成功率"
-    target: "100%（確実にIssue内容を取得）"
-    
-  task_completion:
-    measure: "完了したタスクの割合"
-    target: "100%（すべてのタスクが完了）"
-    
-  quality_compliance:
-    measure: "完了の定義への準拠度"
-    target: "100%（すべての完了基準を満たす）"
-    
-  commit_success_rate:
-    measure: "コミット実行の成功率"
-    target: "100%（改行文字問題やステージング問題の解決）"
-    
-  pr_creation_success_rate:
-    measure: "Pull Request作成の成功率"
-    target: "100%（一時ファイル使用による確実な作成）"
-    
-  review_process_effectiveness:
-    measure: "人間レビューによる品質向上"
-    target: "レビューによる問題発見・修正の実施"
-    
-  efficiency:
-    measure: "並列実行によるタスク完了時間の短縮"
-    target: "逐次実行と比較して30%以上の時間短縮"
-    
-  automation_effectiveness:
-    measure: "手動介入が必要だった作業の割合（レビューを除く）"
-    target: "10%以下（90%以上の作業が自動化）"
-    
-  collaboration_effectiveness:
-    measure: "AI-人間間のコミュニケーション品質"
-    target: "明確で建設的なやり取り、問題の迅速な解決" 
+      - step_id: "E5"
+        title: "タスク完了状況の最終確認と人間レビューの依頼" 
