@@ -1,6 +1,6 @@
 # GHWT - Git Worktree 管理ツール
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Rust Version](https://img.shields.io/badge/rust-1.87.0-orange.svg)](https://www.rust-lang.org)
 
 **GHWT**（Git Worktree Tool）は、Git の **bare repository + worktree** レイアウトを自動化し、安全かつ高速に複数のブランチを同時に扱えるCLIツールです。
 

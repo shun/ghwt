@@ -1,0 +1,10 @@
+[package]
+name = "ghwt"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+[profile.release]
+rustflags = ["-D", "clippy::dbg_macro"]
+
