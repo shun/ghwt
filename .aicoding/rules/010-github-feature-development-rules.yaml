@@ -1,0 +1,151 @@
+# .aicoding/rules/010-github-feature-development-rules.yaml
+# GitHub機能を中心としたAI駆動開発ルール
+# Version: 1.0 (2025-07-10)
+# Description:
+#   本ファイルは GitHub が提供する主要機能 (Issue・Project・Pull Request・Action・Security 等) を
+#   AI が最大限活用しながら開発サイクルを自動化／効率化するためのガイドラインを定義する。
+#   既存の 001,002,007 などの詳細ルールを補完し、GitHub エコシステム全体で一貫性のある
+#   ワークフローを提供することを目的とする。
+#
+#============================================
+# ルートノード定義
+#--------------------------------------------
+github_feature_rules:
+  # ------------------------------------------------------------------
+  # 1. Issues & Projects 連携
+  # ------------------------------------------------------------------
+  - id: "ISSUE_MANDATORY_AND_LINK_TO_PROJECT"
+    area: "issues_projects"
+    description: |
+      新しい機能開発・バグ修正・改善作業は必ず GitHub Issue として登録し、
+      GitHub Projects (ボード) に紐付けなければならない。
+      これによりバックログと進捗が一元管理され、AI/人間が状況を容易に把握できる。
+    trigger_actions: ["issue_create_intent"]
+    guidance_for_ai: |
+      1. Issue を生成・登録した直後に `gh project item-add` で適切なカラム (例: _Todo_) に追加する。
+      2. Projects へのリンクが失敗した場合はエラーメッセージを解析しリトライ、
+         またはユーザーに不足情報 (プロジェクト番号など) を質問する。
+    severity: "CRITICAL"
+
+  - id: "ISSUE_LABELING_STANDARD"
+    area: "issues_projects"
+    description: "Issue には種別・優先度・ステータス・並列実行可否 などのラベルを AI が自動付与する。"
+    trigger_actions: ["issue_create_intent"]
+    guidance_for_ai: |
+      必須ラベル
+        - kind/(feature|bug|improvement|refactoring)
+        - priority/(high|medium|low)
+        - status/(todo|in-progress|blocked|done)
+      任意ラベル
+        - 🤖-parallel-ok / 🚧-sequential-required
+        - component/*
+      gh CLI 使用例:
+        gh issue create ... --label "kind/feature,priority/high,🤖-parallel-ok"
+    severity: "MAJOR"
+
+  # ------------------------------------------------------------------
+  # 2. Pull Request (PR) & Code Review
+  # ------------------------------------------------------------------
+  - id: "PR_REQUIRES_LINKED_ISSUE"
+    area: "pull_requests"
+    description: "全ての PR は対応する Issue を `Closes #xx` 形式で必ずリンクする。"
+    trigger_actions: ["git_pr_create_intent"]
+    guidance_for_ai: |
+      PR 本文テンプレートに `Closes #{issue_number}` を自動挿入し、
+      レビューアがリンクを確認出来るようにする。
+    severity: "CRITICAL"
+
+  - id: "PR_REVIEW_MIN_APPROVALS"
+    area: "pull_requests"
+    description: "main ブランチへマージする PR は 2 件以上の Approved が必要。"
+    trigger_actions: ["pr_merge_intent"]
+    guidance_for_ai: |
+      1. gh CLI でレビュー数を取得し、未達の場合は自動で `gh pr review --request` を使い CODEOWNERS のレビュアに依頼する。
+      2. 24 時間承認が得られない場合、状況をユーザーに報告し再依頼方法を提案する。
+    severity: "CRITICAL"
+
+  - id: "PR_STATUS_CHECK_BLOCK"
+    area: "pull_requests"
+    description: "CI (GitHub Actions) の必須ステータスチェックが成功しない限りメージ禁止。"
+    trigger_actions: ["pr_merge_intent"]
+    guidance_for_ai: |
+      `gh pr checks` で CI 結果を確認し、失敗していれば修正コミットをプッシュし再実行をトリガーする。
+    severity: "ERROR"
+
+  # ------------------------------------------------------------------
+  # 3. GitHub Actions (CI/CD & Automation)
+  # ------------------------------------------------------------------
+  - id: "REQUIRE_TEST_WORKFLOW"
+    area: "actions"
+    description: "main ブランチと PR にはユニットテスト自動実行ワークフローが設定されていることを保証する。"
+    trigger_actions: ["ci_setup_intent", "project_bootstrap"]
+    guidance_for_ai: |
+      `.github/workflows/test.yml` が存在しない場合は自動生成する。
+      Rust プロジェクトの例:
+        steps: `cargo fmt -- --check`, `cargo clippy -- -D warnings`, `cargo test --all`.
+    severity: "MAJOR"
+
+  - id: "AUTO_RELEASE_DRAFT"
+    area: "actions"
+    description: "タグ付きコミット時に GitHub Release のドラフトを自動生成する。"
+    trigger_actions: ["release_draft_intent"]
+    guidance_for_ai: |
+      `gh release create --draft` を workflow で自動化し、CHANGELOG.md の最新エントリを本文とする。
+    severity: "MINOR"
+
+  # ------------------------------------------------------------------
+  # 4. Security & Dependency Management
+  # ------------------------------------------------------------------
+  - id: "ENABLE_DEPENDABOT"
+    area: "security_dependencies"
+    description: "Dependabot を有効化し、Rust Crates (cargo), GitHub Actions のアップデート PR を自動作成する。"
+    trigger_actions: ["project_bootstrap"]
+    guidance_for_ai: |
+      `.github/dependabot.yml` が存在しない場合はテンプレートを生成し PR を提案する。
+    severity: "MAJOR"
+
+  - id: "ENABLE_CODE_SCANNING"
+    area: "security_dependencies"
+    description: "CodeQL を用いたコードスキャンワークフローを有効化する。"
+    trigger_actions: ["security_setup_intent"]
+    guidance_for_ai: |
+      `.github/workflows/codeql.yml` を生成し、プルリクエストと定期スキャンを設定する。
+    severity: "MAJOR"
+
+  # ------------------------------------------------------------------
+  # 5. Discussion & Documentation
+  # ------------------------------------------------------------------
+  - id: "USE_DISCUSSIONS_FOR_QA"
+    area: "communication"
+    description: "仕様の疑問やアーキテクチャ議論は Issue ではなく GitHub Discussions の `Q&A` カテゴリで行う。"
+    trigger_actions: ["question_intent"]
+    guidance_for_ai: |
+      gh CLI 例: `gh discussion create --category "Q&A" --title "..." --body-file /tmp/body.md`。
+      決定事項は関連 Issue/PR にリンクし要約をコメントとして残す。
+    severity: "MINOR"
+
+  - id: "WIKI_SYNC_REQUIRED"
+    area: "communication"
+    description: "重要なアーキテクチャ図・決定事項は GitHub Wiki と README に反映し、ドキュメントの重複を防ぐ。"
+    trigger_actions: ["doc_update_intent"]
+    guidance_for_ai: |
+      1. 変更点を PR に含め Wiki も更新する (gh CLI: `gh wiki clone`).
+      2. README には概要と Wiki へのリンクを追記する。
+    severity: "MINOR"
+
+  # ------------------------------------------------------------------
+  # 6. Tooling & Integration
+  # ------------------------------------------------------------------
+  - id: "GH_CLI_EXCLUSIVE_USE"
+    area: "tooling_and_integration"
+    description: |
+      GitHub 上の情報取得・作成・更新など、すべての対話は `gh` CLI 経由で実行しなければならない。
+      `web_fetch` などの汎用ツールを GitHub リポジトリの URL に対して使用することは禁止する。
+    trigger_actions: ["github_interaction_intent"]
+    guidance_for_ai: |
+      - GitHub の Issue, PR, discussions, projects 等の情報を参照する場合は、必ず `gh issue view`, `gh pr view` 等の `gh` コマンドを利用する。
+      - Issue や PR を作成する場合も `gh issue create`, `gh pr create` を利用する。
+      - `web_fetch` ツールで `github.com` の URL を直接読み取るような操作は絶対に行わないこと。
+    severity: "CRITICAL"
+
+# EOF
