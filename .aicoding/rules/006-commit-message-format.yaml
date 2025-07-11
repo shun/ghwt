@@ -4,6 +4,7 @@
 
 # Commit Message Structure
 commit_message_format:
+  language: "日本語" # コミットメッセージは必ず日本語で作成する
   template: |
     {{タイトル}}
     **対応内容**
@@ -16,7 +17,7 @@ commit_message_format:
   generation_rules:
     summary:
       source: "AIによる自動要約"
-      instruction: "ステージングされたファイルの変更内容を分析し、1行の簡潔な概要を生成する。"
+      instruction: "ステージングされたファイルの変更内容を分析し、1行の簡潔な概要を日本語で生成する。"
     details:
       granularity: "機能・ロジック単位の変更点"
       instruction: "具体的な関数名やロジックの変更点を記述する。"
