@@ -5,8 +5,14 @@
 ## 開発環境のセットアップ
 
 1.  Rustのインストール: [README-ja.md](./README-ja.md) の指示に従ってください。
-2.  `rustfmt` (フォーマッター) のインストール: `rustup component add rustfmt`
-3.  `clippy` (リンター) のインストール: `rustup component add clippy`
+2.  `rustfmt` (フォーマッター) のインストール:
+    ```bash
+    rustup component add rustfmt
+    ```
+3.  `clippy` (リンター) のインストール:
+    ```bash
+    rustup component add clippy
+    ```
 
 ## コーディングスタイル
 
@@ -15,6 +21,14 @@
 
 コードの静的解析には `clippy` を使用します。設定はプロジェクトルートの `clippy.toml` に定義されています。
 コミット前に `cargo clippy -- -D warnings` を実行し、エラーや警告がないことを確認してください。
+
+### コミット前チェック例:
+
+```bash
+cargo fmt --all
+cargo clippy --all-targets --all-features -- -D warnings
+cargo test
+```
 
 ## (参考) VS Code での推奨設定
 
@@ -35,9 +49,9 @@ VS Code と `rust-analyzer` 拡張機能を使用する場合、以下の設定�
 
 ## プルリクエストのプロセス
 
-TODO: プルリクエストの作成手順、レビュープロセスなどを記述する
+GitHub のプルリクエストテンプレート (`.github/pull_request_template.md`) を参照してください。
 
 ## Issueの報告
 
-TODO: Issueの報告テンプレートやガイドラインを記述する
+GitHub の Issue テンプレートを参照してください。
 
