@@ -1,4 +1,18 @@
-.DS_Store
-GEMINI.md
-AGENTS.md
-CLAUDE.md
+# Rust
+/target/
+
+
+# IDEs
+.idea/
+.vscode/ # settings.json など個人設定を含むため、共有しない場合はignore
+*.iml
+*.ipr
+*.iws
+
+# OS generated files
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ethumbs.db
+Thumbs.db

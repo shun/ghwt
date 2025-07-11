@@ -1,0 +1,23 @@
+# clippy.toml
+
+# correctness: ほぼ常にバグである可能性が高いものを指摘
+# deny = ["clippy::correctness"] # デフォルトで deny のものが多いので、個別指定でも良い
+
+# pedantic: 非常に細かい、あるいは好みが分かれる可能性のある規約的な指摘
+# プロジェクト開始時は warn にしておき、徐々に deny に移行するか、
+# 個別に allow するリントを増やす運用も考えられます。
+
+# ---- 個別のリント設定例 (上記グループ設定と合わせて調整) ----
+
+# ドキュメント関連の警告をエラーに
+# deny = ["clippy::missing_errors_doc"] # pedantic グループに含まれるため不要な場合あり
+# deny = ["clippy::missing_panics_doc"] # pedantic グループに含まれるため不要な場合あり
+
+# allow するリントの例 (必要に応じてコメントアウトを解除)
+# allow = ["clippy::module_name_repetitions"]
+# allow = ["clippy::struct_excessive_bools"]
+# allow = ["clippy::too_many_lines"]
+# allow = ["clippy::cognitive_complexity"]
+
+# For a list of all lints and their details:
+# https://rust-lang.github.io/rust-clippy/master/
