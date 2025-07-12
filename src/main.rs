@@ -20,9 +20,13 @@ fn main() {
                 });
 
                 match config.get_value(key) {
-                    Some(value) => {
-                        println!("{}", value.as_str().unwrap_or_default());
-                    }
+                    Some(value) => match value.as_str() {
+                        Some(s) => println!("{}", s),
+                        None => {
+                            eprintln!("Error: Configuration value for '{}' is not a string", key);
+                            process::exit(1);
+                        }
+                    },
                     None => {
                         // This case should ideally not be reached for core.root due to default handling in Config::load
                         eprintln!("Error: Could not find value for key '{}'", key);

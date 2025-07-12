@@ -9,7 +9,7 @@ pub struct Config {
 impl Config {
     pub fn load() -> Result<Self, String> {
         let config_path = Self::get_config_path()?;
-        let default_root = dirs::home_dir()
+        let default_root = dirs_next::home_dir()
             .ok_or_else(|| "Could not find home directory".to_string())?
             .join("ghwt");
 
@@ -33,7 +33,7 @@ impl Config {
         if let Ok(path) = std::env::var("GHWT_CONFIG_PATH") {
             return Ok(PathBuf::from(path));
         }
-        let config_dir = dirs::config_dir()
+        let config_dir = dirs_next::config_dir()
             .ok_or_else(|| "Could not find config directory".to_string())?;
         Ok(config_dir.join("ghwt").join("config.toml"))
     }

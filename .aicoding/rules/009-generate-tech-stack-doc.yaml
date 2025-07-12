@@ -21,4 +21,4 @@ tech_stack:
       - ".github/workflows/*.yml"
   - name: "Rust"
     evidence:
-      - "Cargo.toml"
+      - "**/Cargo.toml"
