@@ -1,7 +1,5 @@
 use crate::config::Config;
 use anyhow::Result;
-use std::env;
-use std::path::PathBuf;
 
 #[derive(clap::Args, Debug, Clone)]
 pub struct SetArgs {
