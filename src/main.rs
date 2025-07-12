@@ -2,6 +2,8 @@ use clap::{Parser, Subcommand};
 use std::process;
 mod config;
 use config::Config;
+mod commands;
+pub use commands::config_set::SetArgs;
 
 fn main() {
     let cli = Cli::parse();
@@ -32,6 +34,12 @@ fn main() {
                         eprintln!("Error: Could not find value for key '{}'", key);
                         process::exit(1);
                     }
+                }
+            }
+            ConfigAction::Set(args) => {
+                if let Err(e) = commands::config_set::handle_config_set(args.clone()) {
+                    eprintln!("Error: {}", e);
+                    process::exit(1);
                 }
             }
         },
@@ -65,6 +73,8 @@ enum ConfigAction {
         #[arg(value_name = "KEY")]
         key: String,
     },
+    /// Set a configuration value
+    Set(SetArgs),
 }
 
 #[cfg(test)]
@@ -79,6 +89,7 @@ mod tests {
                 ConfigAction::Get { key } => {
                     assert_eq!(key, "core.root");
                 }
+                _ => panic!("Expected ConfigAction::Get"),
             },
         }
     }
@@ -87,5 +98,21 @@ mod tests {
     fn test_parse_config_get_missing_key() {
         let err = Cli::try_parse_from(["ghwt", "config", "get"]).unwrap_err();
         assert_eq!(err.kind(), clap::error::ErrorKind::MissingRequiredArgument);
+    }
+
+    #[test]
+    fn test_parse_config_set_with_key_value_and_quiet_flag() {
+        let cli =
+            Cli::try_parse_from(["ghwt", "config", "set", "test.key", "test_value", "-q"]).unwrap();
+        match cli.command {
+            Commands::Config(config_args) => match config_args.action {
+                ConfigAction::Set(args) => {
+                    assert_eq!(args.key, "test.key");
+                    assert_eq!(args.value, "test_value");
+                    assert!(args.quiet);
+                }
+                _ => panic!("Expected ConfigAction::Set"),
+            },
+        }
     }
 }

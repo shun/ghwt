@@ -151,7 +151,7 @@ ghwt config set core.root ~/workspace
 
 #### 出力
 ```
-Configuration updated: core.root = ~/workspace
+Key 'core.root' set to value '~/workspace'
 ```
 
 ### 5.2 `ghwt config get <key>`

@@ -111,6 +111,7 @@ cd "$(ghwt new feature-auth)"
 |----------|------|
 | `ghwt get <URL>` | リポジトリを bare clone してレイアウト化 |
 | `ghwt new <branch>` | 新しい worktree を作成 |
+| `ghwt config set <key> <value>` | 設定ファイルに値を書き込みます |
 
 ## 🚨 トラブルシューティング
 
