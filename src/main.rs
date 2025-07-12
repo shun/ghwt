@@ -73,7 +73,7 @@ mod tests {
 
     #[test]
     fn test_parse_config_get_with_key() {
-        let cli = Cli::try_parse_from(&["ghwt", "config", "get", "core.root"]).unwrap();
+        let cli = Cli::try_parse_from(["ghwt", "config", "get", "core.root"]).unwrap();
         match cli.command {
             Commands::Config(config_args) => match config_args.action {
                 ConfigAction::Get { key } => {
@@ -85,7 +85,7 @@ mod tests {
 
     #[test]
     fn test_parse_config_get_missing_key() {
-        let err = Cli::try_parse_from(&["ghwt", "config", "get"]).unwrap_err();
+        let err = Cli::try_parse_from(["ghwt", "config", "get"]).unwrap_err();
         assert_eq!(err.kind(), clap::error::ErrorKind::MissingRequiredArgument);
     }
 }

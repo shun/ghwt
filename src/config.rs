@@ -55,10 +55,7 @@ impl Config {
 
         let mut current_value = &self.data;
         for part in key.split('.') {
-            current_value = match current_value.get(part) {
-                Some(value) => value,
-                None => return None,
-            };
+            current_value = current_value.get(part)?;
         }
 
         if current_value.is_table() {
