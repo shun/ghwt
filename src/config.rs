@@ -1,5 +1,5 @@
-use std::path::PathBuf;
 use std::fs;
+use std::path::PathBuf;
 use toml::Value;
 
 pub struct Config {
@@ -14,16 +14,22 @@ impl Config {
             .join("ghwt");
 
         let mut config_data = if config_path.exists() {
-            let content = fs::read_to_string(&config_path)
-                .map_err(|e| format!("Failed to read config file: {}", e))?;
+            let content = fs::read_to_string(&config_path).map_err(|e| format!("Failed to read config file: {}", e))?;
             toml::from_str(&content).map_err(|e| format!("Failed to parse config file: {}", e))?
         } else {
             Value::Table(toml::map::Map::new())
         };
 
         if config_data.get("core").and_then(|c| c.get("root")).is_none() {
-            let core_table = config_data.as_table_mut().unwrap().entry("core").or_insert_with(|| Value::Table(toml::map::Map::new()));
-            core_table.as_table_mut().unwrap().insert("root".to_string(), Value::String(default_root.to_str().unwrap().to_string()));
+            let core_table = config_data
+                .as_table_mut()
+                .unwrap()
+                .entry("core")
+                .or_insert_with(|| Value::Table(toml::map::Map::new()));
+            core_table
+                .as_table_mut()
+                .unwrap()
+                .insert("root".to_string(), Value::String(default_root.to_str().unwrap().to_string()));
         }
 
         Ok(Self { data: config_data })
@@ -33,8 +39,7 @@ impl Config {
         if let Ok(path) = std::env::var("GHWT_CONFIG_PATH") {
             return Ok(PathBuf::from(path));
         }
-        let config_dir = dirs_next::config_dir()
-            .ok_or_else(|| "Could not find config directory".to_string())?;
+        let config_dir = dirs_next::config_dir().ok_or_else(|| "Could not find config directory".to_string())?;
         Ok(config_dir.join("ghwt").join("config.toml"))
     }
 
@@ -92,7 +97,9 @@ mod tests {
     #[test]
     fn test_get_value_for_nested_key() {
         let config = setup_config();
-        let value = config.get_value("section.sub_section.key").expect("Value should exist for nested key");
+        let value = config
+            .get_value("section.sub_section.key")
+            .expect("Value should exist for nested key");
         assert_eq!(value.as_str(), Some("value"));
     }
 
@@ -103,7 +110,7 @@ mod tests {
     }
 
     #[test]
-fn test_get_value_for_nonexistent_nested_key() {
+    fn test_get_value_for_nonexistent_nested_key() {
         let config = setup_config();
         assert_eq!(config.get_value("section.nonexistent_key"), None);
     }

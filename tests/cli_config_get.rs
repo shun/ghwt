@@ -1,9 +1,9 @@
 use assert_cmd::prelude::*;
 use predicates::prelude::*;
-use std::process::Command;
-use tempfile::tempdir;
 use std::fs::File;
 use std::io::Write;
+use std::process::Command;
+use tempfile::tempdir;
 
 #[test]
 fn test_config_get_core_root_with_custom_config() -> Result<(), Box<dyn std::error::Error>> {
@@ -18,9 +18,7 @@ root = "/custom/path"
     let mut cmd = Command::cargo_bin("ghwt")?;
     cmd.env("GHWT_CONFIG_PATH", config_path.to_str().unwrap());
     cmd.arg("config").arg("get").arg("core.root");
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("/custom/path"));
+    cmd.assert().success().stdout(predicate::str::contains("/custom/path"));
 
     Ok(())
 }
@@ -47,9 +45,9 @@ fn test_config_get_core_root_with_default_config() -> Result<(), Box<dyn std::er
 fn test_config_get_other_key_fails() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("ghwt")?;
     cmd.arg("config").arg("get").arg("other.key");
-    cmd.assert()
-        .failure()
-        .stderr(predicate::str::contains("Error: Only 'core.root' is supported for the get command."));
+    cmd.assert().failure().stderr(predicate::str::contains(
+        "Error: Only 'core.root' is supported for the get command.",
+    ));
 
     Ok(())
 }
