@@ -1,25 +1,25 @@
+use anyhow::Result;
 use std::fs;
 use std::path::PathBuf;
-use toml_edit::{value, DocumentMut, Value};
-use anyhow::Result;
+use toml_edit::{DocumentMut, Value, value};
 
 pub struct Config {
     doc: DocumentMut,
 }
 
 impl Config {
-    pub fn load() -> Result<Self, String> {
+    pub fn load() -> Result<Self> {
         let config_path = Self::get_config_path()?;
         let default_root = dirs_next::home_dir()
-            .ok_or_else(|| "Could not find home directory".to_string())?
+            .ok_or_else(|| anyhow::anyhow!("Could not find home directory"))?
             .join("ghwt");
 
         let doc = if config_path.exists() {
-            let content = fs::read_to_string(&config_path)
-                .map_err(|e| format!("Failed to read config file: {}", e))?;
+            let content =
+                fs::read_to_string(&config_path).map_err(|e| anyhow::anyhow!("Failed to read config file: {}", e))?;
             content
                 .parse::<DocumentMut>()
-                .map_err(|e| format!("Failed to parse config file: {}", e))?
+                .map_err(|e| anyhow::anyhow!("Failed to parse config file: {}", e))?
         } else {
             DocumentMut::new()
         };
@@ -37,8 +37,7 @@ impl Config {
         if let Ok(path) = std::env::var("GHWT_CONFIG_PATH") {
             return Ok(PathBuf::from(path));
         }
-        let config_dir =
-            dirs_next::config_dir().ok_or_else(|| anyhow::anyhow!("Could not find config directory"))?;
+        let config_dir = dirs_next::config_dir().ok_or_else(|| anyhow::anyhow!("Could not find config directory"))?;
         Ok(config_dir.join("ghwt").join("config.toml"))
     }
 
@@ -61,11 +60,15 @@ impl Config {
     }
 
     /// Sets a value in the configuration.
-    /// 
+    ///
     /// # Arguments
     /// * `key_str` - A dot-separated key path (must not be empty)
     /// * `value_str` - The string value to set
     pub fn set_value(&mut self, key_str: &str, value_str: &str) -> Result<()> {
+        if key_str.is_empty() || key_str.starts_with('.') || key_str.ends_with('.') || key_str.contains("..") {
+            return Err(anyhow::anyhow!("Invalid key format: {}", key_str));
+        }
+
         let mut current_item = self.doc.as_item_mut();
 
         let keys: Vec<&str> = key_str.split('.').collect();
@@ -224,10 +227,10 @@ mod tests {
 
         let mut config = setup_config();
         config.set_value("test.key", "test_value").unwrap();
-        
+
         // The save method should create the directory if it doesn't exist
         config.save(&path).unwrap();
-        
+
         // Verify the file was created
         assert!(path.exists());
         let content = fs::read_to_string(&path).unwrap();
@@ -241,17 +244,45 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let readonly_dir = dir.path().join("readonly");
         fs::create_dir(&readonly_dir).unwrap();
-        
+
         // Make the directory read-only
         let mut perms = fs::metadata(&readonly_dir).unwrap().permissions();
         perms.set_readonly(true);
         fs::set_permissions(&readonly_dir, perms).unwrap();
-        
+
         let path = readonly_dir.join("test_config.toml");
         let config = setup_config();
-        
+
         // This should fail because the directory is read-only
         let result = config.save(&path);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_set_value_empty_key() {
+        let mut config = setup_config();
+        let result = config.set_value("", "value");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_set_value_key_with_leading_dot() {
+        let mut config = setup_config();
+        let result = config.set_value(".key", "value");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_set_value_key_with_trailing_dot() {
+        let mut config = setup_config();
+        let result = config.set_value("key.", "value");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_set_value_key_with_double_dot() {
+        let mut config = setup_config();
+        let result = config.set_value("key..key2", "value");
         assert!(result.is_err());
     }
 }

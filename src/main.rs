@@ -102,8 +102,7 @@ mod tests {
 
     #[test]
     fn test_parse_config_set_with_key_value_and_quiet_flag() {
-        let cli =
-            Cli::try_parse_from(["ghwt", "config", "set", "test.key", "test_value", "-q"]).unwrap();
+        let cli = Cli::try_parse_from(["ghwt", "config", "set", "test.key", "test_value", "-q"]).unwrap();
         match cli.command {
             Commands::Config(config_args) => match config_args.action {
                 ConfigAction::Set(args) => {

@@ -11,14 +11,11 @@ fn test_set_first_time() {
 
     let mut cmd = Command::cargo_bin("ghwt").unwrap();
     cmd.env("GHWT_CONFIG_PATH", config_path.to_str().unwrap());
-    cmd.arg("config")
-        .arg("set")
-        .arg("test.key")
-        .arg("test_value");
+    cmd.arg("config").arg("set").arg("test.key").arg("test_value");
 
-    cmd.assert().success().stdout(
-        predicate::str::contains("Key 'test.key' set to value 'test_value'"),
-    );
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("Key 'test.key' set to value 'test_value'"));
 
     let content = fs::read_to_string(&config_path).unwrap();
     assert!(content.contains("[test]"));
@@ -33,10 +30,7 @@ fn test_set_add_new_key_to_existing_config() {
 
     let mut cmd = Command::cargo_bin("ghwt").unwrap();
     cmd.env("GHWT_CONFIG_PATH", config_path.to_str().unwrap());
-    cmd.arg("config")
-        .arg("set")
-        .arg("user.name")
-        .arg("testuser");
+    cmd.arg("config").arg("set").arg("user.name").arg("testuser");
 
     cmd.assert().success();
 
@@ -53,10 +47,7 @@ fn test_set_update_value_in_existing_config() {
 
     let mut cmd = Command::cargo_bin("ghwt").unwrap();
     cmd.env("GHWT_CONFIG_PATH", config_path.to_str().unwrap());
-    cmd.arg("config")
-        .arg("set")
-        .arg("core.root")
-        .arg("/new/path");
+    cmd.arg("config").arg("set").arg("core.root").arg("/new/path");
 
     cmd.assert().success();
 
@@ -72,11 +63,7 @@ fn test_set_quiet_suppresses_message() {
 
     let mut cmd = Command::cargo_bin("ghwt").unwrap();
     cmd.env("GHWT_CONFIG_PATH", config_path.to_str().unwrap());
-    cmd.arg("config")
-        .arg("set")
-        .arg("test.key")
-        .arg("test_value")
-        .arg("-q");
+    cmd.arg("config").arg("set").arg("test.key").arg("test_value").arg("-q");
 
     cmd.assert().success().stdout(predicate::str::is_empty());
 }
