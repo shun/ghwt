@@ -1,7 +1,0 @@
-[package]
-name = "ghwt"
-version = "0.1.0"
-edition = "2024"
-description = "Git Worktree Tool (GHWT) is a CLI tool that automates the bare repository + worktree layout for Git."
-license = "MIT"
-repository = "https://github.com/shun/ghwt"
