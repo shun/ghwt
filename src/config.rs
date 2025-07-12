@@ -33,12 +33,12 @@ impl Config {
         Ok(config)
     }
 
-    fn get_config_path() -> Result<PathBuf, String> {
+    pub fn get_config_path() -> Result<PathBuf> {
         if let Ok(path) = std::env::var("GHWT_CONFIG_PATH") {
             return Ok(PathBuf::from(path));
         }
         let config_dir =
-            dirs_next::config_dir().ok_or_else(|| "Could not find config directory".to_string())?;
+            dirs_next::config_dir().ok_or_else(|| anyhow::anyhow!("Could not find config directory"))?;
         Ok(config_dir.join("ghwt").join("config.toml"))
     }
 
@@ -60,6 +60,11 @@ impl Config {
         current_item.as_value()
     }
 
+    /// Sets a value in the configuration.
+    /// 
+    /// # Arguments
+    /// * `key_str` - A dot-separated key path (must not be empty)
+    /// * `value_str` - The string value to set
     pub fn set_value(&mut self, key_str: &str, value_str: &str) -> Result<()> {
         let mut current_item = self.doc.as_item_mut();
 

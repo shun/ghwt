@@ -21,6 +21,7 @@ fn test_set_first_time() {
     );
 
     let content = fs::read_to_string(&config_path).unwrap();
+    assert!(content.contains("[test]"));
     assert!(content.contains("key = \"test_value\""));
 }
 

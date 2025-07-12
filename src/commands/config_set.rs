@@ -20,13 +20,7 @@ pub fn handle_config_set(args: SetArgs) -> Result<()> {
     let mut config = Config::load().map_err(|e| anyhow::anyhow!(e))?;
     config.set_value(&args.key, &args.value)?;
 
-    let config_path = if let Ok(path) = env::var("GHWT_CONFIG_PATH") {
-        PathBuf::from(path)
-    } else {
-        let config_dir = dirs_next::config_dir()
-            .ok_or_else(|| anyhow::anyhow!("Could not find config directory"))?;
-        config_dir.join("ghwt").join("config.toml")
-    };
+    let config_path = Config::get_config_path()?;
 
     config.save(&config_path)?;
 
